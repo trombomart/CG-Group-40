@@ -32,9 +32,39 @@ void init()
 	MyLightPositions.push_back(MyCameraPosition);
 }
 
+bool rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
+
+	Vec3Df dir = (dest - origin).normalize();
+	std::vector<Vertex> Vertices = MyMesh.vertices;
+
+	Vec3Df vector0 = Vertices[tr.v[0]].p;
+	Vec3Df vector1 = Vertices[tr.v[1]].p;
+	Vec3Df vector2 = Vertices[tr.v[2]].p;
+
+	Vec3Df v0v1 = vector1 - vector0;
+	Vec3Df v0v2 = vector2 - vector0;
+
+	Vec3Df N = Vec3Df::crossProduct(v0v1, v0v2);
+
+	float NdotRayDir = Vec3Df::dotProduct(N, dir);
+	if (NdotRayDir == 0){
+		return false;
+	}
+
+}
+
+
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
+
+	std::vector<Triangle> Triangles = MyMesh.triangles;
+
+	std::vector<Triangle>::const_iterator iterator;
+	for (iterator = Triangles.begin(); iterator != Triangles.end(); ++iterator) {
+		Triangle tr = *iterator;
+		rayIntersect(origin,dest,tr);
+	}
 	return Vec3Df(dest[0],dest[1],dest[2]);
 }
 
