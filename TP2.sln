@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TP2", "..\Downloads\TP2Win\Exercise 3 (Introduction GLUT)\TP2\TP2.vcxproj", "{AD3F39DC-5E4C-4348-97E1-770D1DFAAF54}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TP2", "TP2.vcxproj", "{AD3F39DC-5E4C-4348-97E1-770D1DFAAF54}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
