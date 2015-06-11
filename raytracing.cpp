@@ -31,10 +31,32 @@ void init()
 	//here, we set it to the current location of the camera
 	MyLightPositions.push_back(MyCameraPosition);
 }
-
+#include "matrix.h"
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
+	std::vector<Triangle> triangles = MyMesh.triangles;
+	std::vector<Vertex> vertices = MyMesh.vertices;
+	int t = MAXINT;
+	Triangle res;
+	for (std::vector<Triangle>::const_iterator it = triangles.begin(); it != triangles.end(); it++){
+		Triangle triangle = *it;
+		int v0 = triangle.v[0];
+		int v1 = triangle.v[1];
+		int v2 = triangle.v[2];
+		Vec3Df V0 = vertices[v0].p;
+		Vec3Df V1 = vertices[v1].p;
+		Vec3Df V2 = vertices[v2].p;
+		Vec3Df right = Vec3Df(V0.p[0] - origin.p[0], V0.p[1] - origin.p[1], V0.p[2] - origin.p[2]);
+		const GLdouble leftmatrix[] = {V0.p[0] - V1.p[0],V0.p[0] - V2.p[0],dest.p[0], V0.p[1] - V1.p[1],V0.p[1] - V2.p[1],dest.p[1], V0.p[2] - V1.p[2],V0.p[2] - V2.p[2],dest.p[2] };
+		GLdouble subresult[9];
+		inverse(leftmatrix, subresult);
+		Vec3Df result = Vec3Df(subresult[0] * right.p[0] + subresult[1] * right.p[1] + subresult[2] * right.p[2], subresult[3] * right.p[0] + subresult[4] * right.p[1] + subresult[5] * right.p[2], subresult[6] * right.p[0] + subresult[7] * right.p[1] + subresult[8] * right.p[2]);
+		if (t > result.p[2] && (result.p[0] + result.p[1] <= 1)){
+			t = result.p[2];
+			res = *it;
+		}
+	}
 	return Vec3Df(dest[0],dest[1],dest[2]);
 }
 
