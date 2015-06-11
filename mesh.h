@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_DEPRECATE
 #ifndef MESH_H_sdfjlasdfjfsdfjljfasdf
 #define MESH_H_sdfjlasdfjfsdfjljfasdf
 

@@ -97,7 +97,7 @@ class Image
 bool Image::writeImage(const char * filename)
 {
 	FILE* file;
-    file = fopen(filename, "wb");
+    fopen_s(&file, filename, "wb");
 	if (!file)
 	{
 		printf("dump file problem... file\n");
