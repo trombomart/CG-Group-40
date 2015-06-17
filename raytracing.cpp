@@ -36,8 +36,7 @@ void init()
 
 float rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
 
-	Vec3Df tmp = dest - origin;
-	Vec3Df dir = (tmp / tmp.getLength());
+	Vec3Df dir = dest - origin;
 	std::vector<Vertex> Vertices = MyMesh.vertices;
 
 	Vec3Df vector0 = Vertices[tr.v[0]].p;
@@ -48,16 +47,17 @@ float rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
 	Vec3Df v0v2 = vector2 - vector0;
 
 	Vec3Df N = Vec3Df::crossProduct(v0v1, v0v2);
+	N.normalize();
 
-	float NdotRayDir = - Vec3Df::dotProduct(N, dir);
-	if (NdotRayDir == 0){
+	float NdotRayDir = Vec3Df::dotProduct(N, dir);
+	if (NdotRayDir >= 0){
 		return -1;
 	}
 
 	float d = Vec3Df::dotProduct(N,vector0);
 
 	// compute t (equation 3)
-	float t =  (Vec3Df::dotProduct(N, origin) + d) / NdotRayDir;
+	float t =  -(Vec3Df::dotProduct(N, origin) - d) / NdotRayDir;
 	// check if the triangle is in behind the ray
 	if (t < 0) return -1; // the triangle is behind
 
@@ -219,11 +219,28 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	//try it: Press a key, move the camera, see the ray that was launched as a line.
 	testRayOrigin=rayOrigin;	
 	testRayDestination=rayDestination;
-	
-	// do here, whatever you want with the keyboard input t.
-	
-	//...
-	
-	
-	std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;	
+
+	std::vector<Triangle> Triangles = MyMesh.triangles;
+	std::vector<unsigned int> triangleMaterials = MyMesh.triangleMaterials;
+	std::vector<Material> materials = MyMesh.materials;
+	std::vector<Vertex> vertices = MyMesh.vertices;
+
+	std::vector<Triangle>::const_iterator iterator;
+	float closest = 10000000000;
+	int index = 0;
+	int triangleIndex;
+	Triangle res;
+	for (iterator = Triangles.begin(); iterator != Triangles.end(); ++iterator) {
+		Triangle tr = *iterator;
+		float distance = rayIntersect(rayOrigin, rayDestination, tr);
+		if ((closest > distance) & distance != -1){
+			closest = distance;
+			res = tr;
+			triangleIndex = index;
+
+			std::cout << t << " we hit triangle number " << index << std::endl;
+		}
+		index++;
+	}
+
 }
