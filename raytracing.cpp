@@ -23,7 +23,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("../dodgeColorTest.obj", true);
+	MyMesh.loadMesh("../dodgeColorTest.obj", true);
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -31,14 +31,35 @@ void init()
 	//here, we set it to the current location of the camera
 	MyLightPositions.push_back(MyCameraPosition);
 }
-#include "matrix.h"
+//#include "matrix.h"
+void inverse2(const double *m, double *p)
+{
+	double determinant = +m[0] * (m[4] * m[8] - m[5] * m[7])
+		- m[3] * (m[1] * m[8] - m[7] * m[2])
+		+ m[6] *(m[1]*m[5] - m[4]*m[2]);
+	if (determinant == 0) return;
+	double invdet = 1 / determinant;
+	p[0] = (m[4]*m[8] - m[5]*m[7])*invdet;
+	p[1] = -(m[3]*m[8] - m[6]*m[5])*invdet;
+	p[2] = (m[3]*m[7] - m[6]*m[4])*invdet;
+	p[3] = -(m[1]*m[8] - m[7]*m[2])*invdet;
+	p[4] = (m[0]*m[8] - m[6]*m[2])*invdet;
+	p[5] = -(m[0]*m[7] - m[1]*m[6])*invdet;
+	p[6] = (m[1]*m[5] - m[2]*m[4])*invdet;
+	p[7] = -(m[1]*m[5] - m[2]*m[3])*invdet;
+	p[8] = (m[0]*m[4] - m[1]*m[3])*invdet;
+}
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
 	std::vector<Triangle> triangles = MyMesh.triangles;
 	std::vector<Vertex> vertices = MyMesh.vertices;
+	std::vector<unsigned int> triangleMaterials = MyMesh.triangleMaterials;
+	std::vector<Material> materials = MyMesh.materials;
 	int t = MAXINT;
 	Triangle res;
+	int triangleIndex;
+	int index = 0;
 	for (std::vector<Triangle>::const_iterator it = triangles.begin(); it != triangles.end(); it++){
 		Triangle triangle = *it;
 		int v0 = triangle.v[0];
@@ -48,16 +69,59 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 		Vec3Df V1 = vertices[v1].p;
 		Vec3Df V2 = vertices[v2].p;
 		Vec3Df right = Vec3Df(V0.p[0] - origin.p[0], V0.p[1] - origin.p[1], V0.p[2] - origin.p[2]);
-		const GLdouble leftmatrix[] = {V0.p[0] - V1.p[0],V0.p[0] - V2.p[0],dest.p[0], V0.p[1] - V1.p[1],V0.p[1] - V2.p[1],dest.p[1], V0.p[2] - V1.p[2],V0.p[2] - V2.p[2],dest.p[2] };
+		const GLdouble leftmatrix[] = { V0.p[0] - V1.p[0], V0.p[0] - V2.p[0], dest.p[0], V0.p[1] - V1.p[1], V0.p[1] - V2.p[1], dest.p[1], V0.p[2] - V1.p[2], V0.p[2] - V2.p[2], dest.p[2] };
 		GLdouble subresult[9];
-		inverse(leftmatrix, subresult);
-		Vec3Df result = Vec3Df(subresult[0] * right.p[0] + subresult[1] * right.p[1] + subresult[2] * right.p[2], subresult[3] * right.p[0] + subresult[4] * right.p[1] + subresult[5] * right.p[2], subresult[6] * right.p[0] + subresult[7] * right.p[1] + subresult[8] * right.p[2]);
-		if (t > result.p[2] && (result.p[0] + result.p[1] <= 1)){
-			t = result.p[2];
-			res = *it;
+		inverse2(leftmatrix, subresult);
+		if (subresult){
+			Vec3Df result = Vec3Df(subresult[0] * right.p[0] + subresult[1] * right.p[1] + subresult[2] * right.p[2], subresult[3] * right.p[0] + subresult[4] * right.p[1] + subresult[5] * right.p[2], subresult[6] * right.p[0] + subresult[7] * right.p[1] + subresult[8] * right.p[2]);
+			if (t > result.p[2] && (result.p[0] + result.p[1] <= 1)){
+				t = result.p[2];
+				res = *it;
+				triangleIndex = index;
+			}
 		}
+		index++;
 	}
-	return Vec3Df(dest[0],dest[1],dest[2]);
+	if (!t){
+		return Vec3Df(0, 0, 0);
+	}
+	index = 0;
+	int materialIndex;
+	for (std::vector<unsigned int>::const_iterator it = triangleMaterials.begin(); it != triangleMaterials.end(); it++){
+		if (index == triangleIndex){
+			materialIndex = *it;
+		}
+		index++;
+	}
+	index = 0;
+	Material material;
+	for (std::vector<Material>::const_iterator it = materials.begin(); it != materials.end(); it++){
+		if (index == materialIndex){
+			material = *it;
+		}
+		index++;
+	}
+
+	Vec3Df vector0 = vertices[res.v[0]].p;
+	Vec3Df vector1 = vertices[res.v[1]].p;
+	Vec3Df vector2 = vertices[res.v[2]].p;
+	Vec3Df v0v1 = vector1 - vector0;
+	Vec3Df v0v2 = vector2 - vector0;
+	Vec3Df N = Vec3Df::crossProduct(v0v1, v0v2);
+	
+	Vec3Df kD = material.Kd();
+	Vec3Df kA = material.Ka();
+	Vec3Df kS = material.Ks();
+	float shine = material.Ns();
+
+	for (std::vector<Vec3Df>::const_iterator it = MyLightPositions.begin(); it != MyLightPositions.end(); it++){
+		Vec3Df surfaceP = origin + t*dest;
+		Vec3Df l = *it - surfaceP;
+		l.normalize();
+		//float dot = dotProduct(l, N);
+	}
+
+	return kD;
 }
 
 
@@ -69,14 +133,14 @@ void yourDebugDraw()
 
 	//let's draw the mesh
 	MyMesh.draw();
-	
+
 	//let's draw the lights in the scene as points
 	glPushAttrib(GL_ALL_ATTRIB_BITS); //store all GL attributes
 	glDisable(GL_LIGHTING);
-	glColor3f(1,1,1);
+	glColor3f(1, 1, 1);
 	glPointSize(10);
 	glBegin(GL_POINTS);
-	for (int i=0;i<MyLightPositions.size();++i)
+	for (int i = 0; i<MyLightPositions.size(); ++i)
 		glVertex3fv(MyLightPositions[i].pointer());
 	glEnd();
 	glPopAttrib();//restore all GL attributes
@@ -90,9 +154,9 @@ void yourDebugDraw()
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
 	glBegin(GL_LINES);
-	glColor3f(0,1,1);
+	glColor3f(0, 1, 1);
 	glVertex3f(testRayOrigin[0], testRayOrigin[1], testRayOrigin[2]);
-	glColor3f(0,0,1);
+	glColor3f(0, 0, 1);
 	glVertex3f(testRayDestination[0], testRayDestination[1], testRayDestination[2]);
 	glEnd();
 	glPointSize(10);
@@ -100,7 +164,7 @@ void yourDebugDraw()
 	glVertex3fv(MyLightPositions[0].pointer());
 	glEnd();
 	glPopAttrib();
-	
+
 	//draw whatever else you want...
 	////glutSolidSphere(1,10,10);
 	////allows you to draw a sphere at the origin.
@@ -133,13 +197,13 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	//here, as an example, I use the ray to fill in the values for my upper global ray variable
 	//I use these variables in the debugDraw function to draw the corresponding ray.
 	//try it: Press a key, move the camera, see the ray that was launched as a line.
-	testRayOrigin=rayOrigin;	
-	testRayDestination=rayDestination;
-	
+	testRayOrigin = rayOrigin;
+	testRayDestination = rayDestination;
+
 	// do here, whatever you want with the keyboard input t.
-	
+
 	//...
-	
-	
-	std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;	
+
+
+	std::cout << t << " pressed! The mouse was in location " << x << "," << y << "!" << std::endl;
 }
