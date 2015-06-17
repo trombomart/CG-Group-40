@@ -23,7 +23,9 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    MyMesh.loadMesh("../dodgeColorTest.obj", true);
+    //MyMesh.loadMesh("../dodgeColorTest.obj", true);
+	MyMesh.loadMesh("../cube.obj", true);
+
 	MyMesh.computeVertexNormals();
 
 	//one first move: initialize the first light source
@@ -31,33 +33,115 @@ void init()
 	//here, we set it to the current location of the camera
 	MyLightPositions.push_back(MyCameraPosition);
 }
-#include "matrix.h"
+
+float rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
+
+	Vec3Df dir = dest - origin;
+	std::vector<Vertex> Vertices = MyMesh.vertices;
+
+	Vec3Df vector0 = Vertices[tr.v[0]].p;
+	Vec3Df vector1 = Vertices[tr.v[1]].p;
+	Vec3Df vector2 = Vertices[tr.v[2]].p;
+
+	Vec3Df v0v1 = vector1 - vector0;
+	Vec3Df v0v2 = vector2 - vector0;
+
+	Vec3Df N = Vec3Df::crossProduct(v0v1, v0v2);
+	N.normalize();
+
+	float NdotRayDir = Vec3Df::dotProduct(N, dir);
+	if (NdotRayDir >= 0){
+		return -1;
+	}
+
+	float d = Vec3Df::dotProduct(N,vector0);
+
+	// compute t (equation 3)
+	float t =  -(Vec3Df::dotProduct(N, origin) - d) / NdotRayDir;
+	// check if the triangle is in behind the ray
+	if (t < 0) return -1; // the triangle is behind
+
+	// compute the intersection point using equation 1
+	Vec3Df P = origin + t * dir;
+
+	// Step 2: inside-outside test
+	Vec3Df C; // vector perpendicular to triangle's plane 
+
+	// edge 0
+	Vec3Df edge0 = vector1 - vector0;
+	Vec3Df vp0 = P - vector0;
+	C = Vec3Df::crossProduct(edge0,vp0);
+	if (Vec3Df::dotProduct(N, C) < 0) return -1; // P is on the right side 
+
+	// edge 1
+	Vec3Df edge1 = vector2 - vector1;
+	Vec3Df vp1 = P - vector1;
+	C = Vec3Df::crossProduct(edge1,vp1);
+	if (Vec3Df::dotProduct(N, C) < 0)  return -1; // P is on the right side 
+
+	// edge 2
+	Vec3Df edge2 = vector0 - vector2;
+	Vec3Df vp2 = P - vector2;
+	C = Vec3Df::crossProduct(edge2,vp2);
+	if (Vec3Df::dotProduct(N,C) < 0) return -1; // P is on the right side; 
+
+	return t; // this ray hits the triangle 
+}
+
+
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
-	std::vector<Triangle> triangles = MyMesh.triangles;
+
+	std::vector<Triangle> Triangles = MyMesh.triangles;
+	std::vector<unsigned int> triangleMaterials = MyMesh.triangleMaterials;
+	std::vector<Material> materials = MyMesh.materials;
 	std::vector<Vertex> vertices = MyMesh.vertices;
-	int t = MAXINT;
+
+	std::vector<Triangle>::const_iterator iterator;
+	float closest = 10000000000;
+	int index = 0;
+	int triangleIndex;
 	Triangle res;
-	for (std::vector<Triangle>::const_iterator it = triangles.begin(); it != triangles.end(); it++){
-		Triangle triangle = *it;
-		int v0 = triangle.v[0];
-		int v1 = triangle.v[1];
-		int v2 = triangle.v[2];
-		Vec3Df V0 = vertices[v0].p;
-		Vec3Df V1 = vertices[v1].p;
-		Vec3Df V2 = vertices[v2].p;
-		Vec3Df right = Vec3Df(V0.p[0] - origin.p[0], V0.p[1] - origin.p[1], V0.p[2] - origin.p[2]);
-		const GLdouble leftmatrix[] = {V0.p[0] - V1.p[0],V0.p[0] - V2.p[0],dest.p[0], V0.p[1] - V1.p[1],V0.p[1] - V2.p[1],dest.p[1], V0.p[2] - V1.p[2],V0.p[2] - V2.p[2],dest.p[2] };
-		GLdouble subresult[9];
-		inverse(leftmatrix, subresult);
-		Vec3Df result = Vec3Df(subresult[0] * right.p[0] + subresult[1] * right.p[1] + subresult[2] * right.p[2], subresult[3] * right.p[0] + subresult[4] * right.p[1] + subresult[5] * right.p[2], subresult[6] * right.p[0] + subresult[7] * right.p[1] + subresult[8] * right.p[2]);
-		if (t > result.p[2] && (result.p[0] + result.p[1] <= 1)){
-			t = result.p[2];
-			res = *it;
+	for (iterator = Triangles.begin(); iterator != Triangles.end(); ++iterator) {
+		Triangle tr = *iterator;
+		float distance = rayIntersect(origin, dest, tr);
+		if ( (closest > distance) & distance != -1){
+			closest = distance;
+			res = tr; 
+			triangleIndex = index;
 		}
+		index++;
 	}
-	return Vec3Df(dest[0],dest[1],dest[2]);
+
+
+	if (closest != 10000000000){
+		Material material = materials[triangleMaterials[triangleIndex]];
+
+		Vec3Df vector0 = vertices[res.v[0]].p;
+		Vec3Df vector1 = vertices[res.v[1]].p;
+		Vec3Df vector2 = vertices[res.v[2]].p;
+		Vec3Df v0v1 = vector1 - vector0;
+		Vec3Df v0v2 = vector2 - vector0;
+		Vec3Df N = Vec3Df::crossProduct(v0v1, v0v2);
+
+		Vec3Df kD = material.Kd();
+		Vec3Df kA = material.Ka();
+		Vec3Df kS = material.Ks();
+		float shine = material.Ns();
+
+		for (std::vector<Vec3Df>::const_iterator it = MyLightPositions.begin(); it != MyLightPositions.end(); it++){
+			Vec3Df surfaceP = origin + closest*dest;
+			Vec3Df l = *it - surfaceP;
+			l.normalize();
+			//float dot = dotProduct(l, N);
+		}
+
+		return kA + kD + kS;
+	}
+	else{
+		return Vec3Df(0, 0, 0);
+	}
 }
 
 
@@ -135,11 +219,28 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	//try it: Press a key, move the camera, see the ray that was launched as a line.
 	testRayOrigin=rayOrigin;	
 	testRayDestination=rayDestination;
-	
-	// do here, whatever you want with the keyboard input t.
-	
-	//...
-	
-	
-	std::cout<<t<<" pressed! The mouse was in location "<<x<<","<<y<<"!"<<std::endl;	
+
+	std::vector<Triangle> Triangles = MyMesh.triangles;
+	std::vector<unsigned int> triangleMaterials = MyMesh.triangleMaterials;
+	std::vector<Material> materials = MyMesh.materials;
+	std::vector<Vertex> vertices = MyMesh.vertices;
+
+	std::vector<Triangle>::const_iterator iterator;
+	float closest = 10000000000;
+	int index = 0;
+	int triangleIndex;
+	Triangle res;
+	for (iterator = Triangles.begin(); iterator != Triangles.end(); ++iterator) {
+		Triangle tr = *iterator;
+		float distance = rayIntersect(rayOrigin, rayDestination, tr);
+		if ((closest > distance) & distance != -1){
+			closest = distance;
+			res = tr;
+			triangleIndex = index;
+
+			std::cout << t << " we hit triangle number " << index << std::endl;
+		}
+		index++;
+	}
+
 }
