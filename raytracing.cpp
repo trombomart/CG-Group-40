@@ -36,8 +36,8 @@ void init()
 
 float rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
 
-	Vec3Df dir = dest - origin;
-	dir.normalize();
+	Vec3Df tmp = dest - origin;
+	Vec3Df dir = (tmp / tmp.getLength());
 	std::vector<Vertex> Vertices = MyMesh.vertices;
 
 	Vec3Df vector0 = Vertices[tr.v[0]].p;
@@ -49,7 +49,7 @@ float rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
 
 	Vec3Df N = Vec3Df::crossProduct(v0v1, v0v2);
 
-	float NdotRayDir = Vec3Df::dotProduct(N, dir);
+	float NdotRayDir = - Vec3Df::dotProduct(N, dir);
 	if (NdotRayDir == 0){
 		return -1;
 	}
@@ -57,7 +57,7 @@ float rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
 	float d = Vec3Df::dotProduct(N,vector0);
 
 	// compute t (equation 3)
-	float t = - (Vec3Df::dotProduct(origin, N) + d) / NdotRayDir;
+	float t =  (Vec3Df::dotProduct(N, origin) + d) / NdotRayDir;
 	// check if the triangle is in behind the ray
 	if (t < 0) return -1; // the triangle is behind
 
@@ -116,22 +116,7 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 
 
 	if (closest != 10000000000){
-		index = 0;
-		int materialIndex;
-		for (std::vector<unsigned int>::const_iterator it = triangleMaterials.begin(); it != triangleMaterials.end(); it++){
-			if (index == triangleIndex){
-				materialIndex = *it;
-			}
-			index++;
-		}
-		index = 0;
-		Material material;
-		for (std::vector<Material>::const_iterator it = materials.begin(); it != materials.end(); it++){
-			if (index == materialIndex){
-				material = *it;
-			}
-			index++;
-		}
+		Material material = materials[triangleMaterials[triangleIndex]];
 
 		Vec3Df vector0 = vertices[res.v[0]].p;
 		Vec3Df vector1 = vertices[res.v[1]].p;
