@@ -4,6 +4,7 @@
 #endif
 #include <GL/glut.h>
 #include "raytracing.h"
+#include <math.h> 
 
 
 //temporary variables
@@ -130,14 +131,39 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 		Vec3Df kS = material.Ks();
 		float shine = material.Ns();
 
+		Vec3Df dir = dest - origin;
+		Vec3Df res;
+		index = 0;
 		for (std::vector<Vec3Df>::const_iterator it = MyLightPositions.begin(); it != MyLightPositions.end(); it++){
-			Vec3Df surfaceP = origin + closest*dest;
+			Vec3Df surfaceP = origin + closest*dir;
 			Vec3Df l = *it - surfaceP;
+			N.normalize();
 			l.normalize();
-			//float dot = dotProduct(l, N);
+			float dot = Vec3Df::dotProduct(l, N);
+			//res = res + cos(dot)*kD;
+			if (dot > 0.0){
+				res = res + dot*kD;
+			}
+			else {
+				res = res + kD*0.0;
+			}
+			Vec3Df viewDir = MyCameraPosition - surfaceP;
+			Vec3Df reflectDir = -l - 2.0*Vec3Df::dotProduct(N, -l)*N;
+			viewDir.normalize();
+			//reflectDir.normalize();
+			float dotSpec = Vec3Df::dotProduct(viewDir, reflectDir);
+			//res = res + kS*pow(cos(dotSpec), shine);
+			if (dotSpec > 0.0){
+			//	res = res + kS*pow(dotSpec, shine);
+			}
+			else {
+			//	res = res + kS*pow(0.0,32);
+			}
+			res = res + kA + kS;
+			index++;
 		}
 
-		return kA + kD + kS;
+		return res;
 	}
 	else{
 		return Vec3Df(0, 0, 0);
