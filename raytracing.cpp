@@ -32,9 +32,10 @@ void init()
 	MyLightPositions.push_back(MyCameraPosition);
 }
 
-bool rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
+float rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
 
-	Vec3Df dir = (dest - origin).normalize();
+	Vec3Df dir = dest - origin;
+	dir.normalize();
 	std::vector<Vertex> Vertices = MyMesh.vertices;
 
 	Vec3Df vector0 = Vertices[tr.v[0]].p;
@@ -51,6 +52,38 @@ bool rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
 		return false;
 	}
 
+	float d = Vec3Df::dotProduct(N,vector0);
+
+	// compute t (equation 3)
+	float t = (Vec3Df::dotProduct(origin, N) + d) / NdotRayDir;
+	// check if the triangle is in behind the ray
+	if (t < 0) return false; // the triangle is behind
+
+	// compute the intersection point using equation 1
+	Vec3Df P = origin + t * dir;
+
+	// Step 2: inside-outside test
+	Vec3Df C; // vector perpendicular to triangle's plane 
+
+	// edge 0
+	Vec3Df edge0 = vector1 - vector0;
+	Vec3Df vp0 = P - vector0;
+	C = Vec3Df::crossProduct(edge0,vp0);
+	if (Vec3Df::dotProduct(N, C) < 0) return MAXINT; // P is on the right side 
+
+	// edge 1
+	Vec3Df edge1 = vector2 - vector1;
+	Vec3Df vp1 = P - vector1;
+	C = Vec3Df::crossProduct(edge1,vp1);
+	if (Vec3Df::dotProduct(N, C) < 0)  return MAXINT; // P is on the right side 
+
+	// edge 2
+	Vec3Df edge2 = vector0 - vector2;
+	Vec3Df vp2 = P - vector2;
+	C = Vec3Df::crossProduct(edge2,vp2);
+	if (Vec3Df::dotProduct(N,C) < 0) return MAXINT; // P is on the right side; 
+
+	return t; // this ray hits the triangle 
 }
 
 
@@ -61,11 +94,18 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	std::vector<Triangle> Triangles = MyMesh.triangles;
 
 	std::vector<Triangle>::const_iterator iterator;
+	float closest = MAXINT;
+	Triangle closestTriangle;
 	for (iterator = Triangles.begin(); iterator != Triangles.end(); ++iterator) {
 		Triangle tr = *iterator;
-		rayIntersect(origin,dest,tr);
+		float distance = rayIntersect(origin, dest, tr);
+		if (closest > distance){
+			closest = distance;
+			closestTriangle = tr;
+		}
 	}
-	return Vec3Df(dest[0],dest[1],dest[2]);
+
+	return Vec3Df(0, 0, 0);
 }
 
 
