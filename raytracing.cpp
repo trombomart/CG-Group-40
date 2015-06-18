@@ -12,7 +12,6 @@
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
 
-
 //use this function for any preprocessing of the mesh.
 void init()
 {
@@ -92,7 +91,10 @@ float rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 {
-
+	static unsigned int counter = 0;
+	counter++;
+	std::cout << "\r";
+	std::cout << "Pixel " << counter;
 	std::vector<Triangle> Triangles = MyMesh.triangles;
 	std::vector<unsigned int> triangleMaterials = MyMesh.triangleMaterials;
 	std::vector<Material> materials = MyMesh.materials;
