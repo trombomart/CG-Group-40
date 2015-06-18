@@ -12,6 +12,8 @@
 //a simple debug drawing. A ray 
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
+Vec3Df hitTmp;
+Vec3Df hitPoint;
 
 
 //use this function for any preprocessing of the mesh.
@@ -25,7 +27,7 @@ void init()
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
     //MyMesh.loadMesh("../dodgeColorTest.obj", true);
-	MyMesh.loadMesh("../cube.obj", true);
+	MyMesh.loadMesh("../cube_floor_reflect.obj", true);
 
 	MyMesh.computeVertexNormals();
 
@@ -38,6 +40,7 @@ void init()
 float rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
 
 	Vec3Df dir = dest - origin;
+	dir.normalize();
 	std::vector<Vertex> Vertices = MyMesh.vertices;
 
 	Vec3Df vector0 = Vertices[tr.v[0]].p;
@@ -64,7 +67,7 @@ float rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
 
 	// compute the intersection point using equation 1
 	Vec3Df P = origin + t * dir;
-
+	hitTmp = P;
 	// Step 2: inside-outside test
 	Vec3Df C; // vector perpendicular to triangle's plane 
 
@@ -91,9 +94,11 @@ float rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
 
 
 //return the color of your pixel.
-Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
+Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth)
 {
-
+	if (depth == 0){
+		progress++;
+	}
 	std::vector<Triangle> Triangles = MyMesh.triangles;
 	std::vector<unsigned int> triangleMaterials = MyMesh.triangleMaterials;
 	std::vector<Material> materials = MyMesh.materials;
@@ -104,12 +109,15 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	int index = 0;
 	int triangleIndex;
 	Triangle res;
+	Triangle hitTriangle;
 	for (iterator = Triangles.begin(); iterator != Triangles.end(); ++iterator) {
 		Triangle tr = *iterator;
 		float distance = rayIntersect(origin, dest, tr);
 		if (((closest > distance)|| closest == -1) & distance != -1){
 			closest = distance;
-			res = tr; 
+			res = tr;
+			hitTriangle = tr;
+			hitPoint = hitTmp;
 			triangleIndex = index;
 		}
 		index++;
@@ -130,37 +138,63 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 		Vec3Df kA = material.Ka();
 		Vec3Df kS = material.Ks();
 		float shine = material.Ns();
-
+		float Tr = material.Tr();
 		Vec3Df dir = dest - origin;
+		dir.normalize();
 		Vec3Df res;
-		index = 0;
+
 		for (std::vector<Vec3Df>::const_iterator it = MyLightPositions.begin(); it != MyLightPositions.end(); it++){
-			Vec3Df surfaceP = origin + closest*dir;
-			Vec3Df l = *it - surfaceP;
+			bool shadow = false;
+			Vec3Df pos = *it;
+
+			for (iterator = Triangles.begin(); iterator != Triangles.end(); ++iterator) {
+				Triangle tr = *iterator;
+				float distance = rayIntersect(hitPoint, pos, tr);
+				Vec3Df LightVector = pos - hitPoint;
+				float lightDist = LightVector.getLength();
+				if (distance != -1 && distance < lightDist) {
+					shadow = true;
+					break;
+				}
+			}
+			Vec3Df surfaceP = hitPoint;
+			Vec3Df l = pos - surfaceP;
 			N.normalize();
 			l.normalize();
 			float dot = Vec3Df::dotProduct(l, N);
-			//res = res + cos(dot)*kD;
-			if (dot > 0.0){
-				res = res + dot*kD;
+
+			if (dot <= 0.0) {
+				res = res + kD*0.2;
 			}
-			else {
-				res = res + kD*0.0;
+			
+			if (shadow == false){
+
+				if (dot > 0.0){
+					res = res + dot*kD;
+				}
+				Vec3Df viewDir = MyCameraPosition - surfaceP;
+				Vec3Df reflectDir = -l - 2.0*Vec3Df::dotProduct(N, -l)*N;
+				viewDir.normalize();
+				//reflectDir.normalize();
+				float dotSpec = Vec3Df::dotProduct(viewDir, reflectDir);
+				//res = res + kS*pow(cos(dotSpec), shine);
+				if (dotSpec > 0.0){
+					//	res = res + kS*pow(dotSpec, shine);
+				}
+				else {
+					//	res = res + kS*pow(0.0,32);
+				}
+				res = res + kA + kS;
+				index++;
+
 			}
-			Vec3Df viewDir = MyCameraPosition - surfaceP;
-			Vec3Df reflectDir = -l - 2.0*Vec3Df::dotProduct(N, -l)*N;
-			viewDir.normalize();
-			//reflectDir.normalize();
-			float dotSpec = Vec3Df::dotProduct(viewDir, reflectDir);
-			//res = res + kS*pow(cos(dotSpec), shine);
-			if (dotSpec > 0.0){
-			//	res = res + kS*pow(dotSpec, shine);
-			}
-			else {
-			//	res = res + kS*pow(0.0,32);
-			}
-			res = res + kA + kS;
-			index++;
+		}
+
+		if (depth < 1 & Tr > 0){
+			N.normalize();
+			Vec3Df r = dir - 2 * (Vec3Df::dotProduct(N, dir)*N);
+			depth++;
+			res += Tr * performRayTracing(hitPoint, r + hitPoint, depth);
 		}
 
 		return res;
@@ -245,5 +279,6 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	//try it: Press a key, move the camera, see the ray that was launched as a line.
 	testRayOrigin=rayOrigin;	
 	testRayDestination=rayDestination;
-
+	int depth = 0;
+	performRayTracing(rayOrigin, rayDestination, depth);
 }

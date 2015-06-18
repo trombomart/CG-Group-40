@@ -9,6 +9,7 @@
 //In principle, you can do the entire project ONLY by working in these two files
 
 extern Mesh MyMesh; //Main mesh
+extern int progress;
 extern std::vector<Vec3Df> MyLightPositions;
 extern Vec3Df MyCameraPosition; //currCamera
 extern unsigned int WindowSize_X;//window resolution width
@@ -26,7 +27,7 @@ void produceRay(int x_I, int y_I, Vec3Df & origin, Vec3Df & dest);
 
 
 //your main function to rewrite
-Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest);
+Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth);
 
 //a function to debug --- you can draw in OpenGL here
 void yourDebugDraw();
@@ -34,4 +35,5 @@ void yourDebugDraw();
 //want keyboard interaction? Here it is...
 void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3Df & rayDestination);
 
+void keepProgress();
 #endif

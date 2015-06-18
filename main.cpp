@@ -10,6 +10,7 @@
 #include "traqueboule.h"
 #include "imageWriter.h"
 #include <ctime>
+#include <thread>
 
 
 //This is the main application
@@ -29,7 +30,7 @@ std::vector<Vec3Df> MyLightPositions;
 
 //Main mesh 
 Mesh MyMesh; 
-
+int progress;
 unsigned int WindowSize_X = 200;  // resolution X
 unsigned int WindowSize_Y = 200;  // resolution Y
 
@@ -214,15 +215,17 @@ void keyboard(unsigned char key, int x, int y)
 	case 'r':
 	{
 		//Pressing r will launch the raytracing.
-		cout<<"Raytracing"<<endl;
+		cout << "Raytracing" << endl;
+		progress =  0;
+		//std::thread image(keepProgress); // slows it all down
 		std::clock_t start;
 		double duration;
 
 		start = std::clock();
 
 		//Setup an image with the size of the current image.
-		Image result(WindowSize_X,WindowSize_Y);
-		
+		Image result(WindowSize_X, WindowSize_Y);
+
 		//produce the rays for each pixel, by first computing
 		//the rays for the corners of the frustum.
 		Vec3Df origin00, dest00;
@@ -232,36 +235,38 @@ void keyboard(unsigned char key, int x, int y)
 		Vec3Df origin, dest;
 
 
-		produceRay(0,0, &origin00, &dest00);
-		produceRay(0,WindowSize_Y-1, &origin01, &dest01);
-		produceRay(WindowSize_X-1,0, &origin10, &dest10);
-		produceRay(WindowSize_X-1,WindowSize_Y-1, &origin11, &dest11);
+		produceRay(0, 0, &origin00, &dest00);
+		produceRay(0, WindowSize_Y - 1, &origin01, &dest01);
+		produceRay(WindowSize_X - 1, 0, &origin10, &dest10);
+		produceRay(WindowSize_X - 1, WindowSize_Y - 1, &origin11, &dest11);
 
-		
-		for (unsigned int y=0; y<WindowSize_Y;++y)
-			for (unsigned int x=0; x<WindowSize_X;++x)
+
+		for (unsigned int y = 0; y<WindowSize_Y; ++y)
+			for (unsigned int x = 0; x<WindowSize_X; ++x)
 			{
 				//produce the rays for each pixel, by interpolating 
 				//the four rays of the frustum corners.
-				float xscale=1.0f-float(x)/(WindowSize_X-1);
-				float yscale=1.0f-float(y)/(WindowSize_Y-1);
+				float xscale = 1.0f - float(x) / (WindowSize_X - 1);
+				float yscale = 1.0f - float(y) / (WindowSize_Y - 1);
 
-				origin=yscale*(xscale*origin00+(1-xscale)*origin10)+
-					(1-yscale)*(xscale*origin01+(1-xscale)*origin11);
-				dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
-					(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
+				origin = yscale*(xscale*origin00 + (1 - xscale)*origin10) +
+					(1 - yscale)*(xscale*origin01 + (1 - xscale)*origin11);
+				dest = yscale*(xscale*dest00 + (1 - xscale)*dest10) +
+					(1 - yscale)*(xscale*dest01 + (1 - xscale)*dest11);
 
 				//launch raytracing for the given ray.
-				Vec3Df rgb = performRayTracing(origin, dest);
+				int depth = 0;
+				Vec3Df rgb = performRayTracing(origin, dest, depth);
 				//store the result in an image 
-				result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
+				result.setPixel(x, y, RGBValue(rgb[0], rgb[1], rgb[2]));
 			}
 
 		result.writeImage("result.ppm");
 
+		//image.join();
 
 		duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-		std::cout << "Total time: " << duration << " seconds"<< '\n';
+		std::cout << "Total time: " << duration << " seconds progress =" << progress << '\n';
 		break;
 	}
 	case 27:     // touche ESC
@@ -276,3 +281,14 @@ void keyboard(unsigned char key, int x, int y)
 	yourKeyboardFunc(key,x,y, testRayOrigin, testRayDestination);
 }
 
+void keepProgress(){
+
+	int expected = WindowSize_X * WindowSize_Y;
+	while (expected != progress){
+		int procent = ((float)progress / (float)expected) * 100;
+		std::cout << "Progress: " << procent << "%";
+		std::cout.flush();
+		Sleep(10000);
+		std:cout << "\r";
+	}
+}

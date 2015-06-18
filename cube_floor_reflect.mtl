@@ -1,0 +1,51 @@
+# Blender MTL File: 'cube_chamber.blend'
+# Material Count: 5
+
+newmtl Material
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.317821 0.481243 0.640000
+Ks 0.000000 0.000000 0.000000
+Ni 1.000000
+d 0.420833
+illum 1
+
+newmtl buffy-blue
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.000000 0.000000 0.640000
+Ks 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.000000
+illum 1
+map_Kd C:\textures\xan
+
+newmtl buffy-gray
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.400000 0.400000 0.400000
+Ks 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.000000
+illum 1
+map_Kd C:\textures\buffy256.ppm
+
+newmtl buffy-green
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.000000 0.640000 0.000000
+Ks 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.000000
+illum 1
+map_Kd C:\textures\willow256.ppm
+
+newmtl buffy-red
+Ns 96.078431
+Ka 0.000000 0.000000 0.000000
+Kd 0.640000 0.000000 0.000000
+Ks 0.000000 0.000000 0.000000
+Ni 1.500000
+d 0.000000
+illum 1
+map_Kd C:\textures\angel256.ppm
