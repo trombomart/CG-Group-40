@@ -9,6 +9,7 @@
 #include "mesh.h"
 #include "traqueboule.h"
 #include "imageWriter.h"
+#include <ctime>
 
 
 //This is the main application
@@ -214,7 +215,10 @@ void keyboard(unsigned char key, int x, int y)
 	{
 		//Pressing r will launch the raytracing.
 		cout<<"Raytracing"<<endl;
-				
+		std::clock_t start;
+		double duration;
+
+		start = std::clock();
 
 		//Setup an image with the size of the current image.
 		Image result(WindowSize_X,WindowSize_Y);
@@ -254,6 +258,10 @@ void keyboard(unsigned char key, int x, int y)
 			}
 
 		result.writeImage("result.ppm");
+
+
+		duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+		std::cout << "Total time: " << duration << " seconds"<< '\n';
 		break;
 	}
 	case 27:     // touche ESC

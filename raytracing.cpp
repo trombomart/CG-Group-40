@@ -57,7 +57,7 @@ float rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
 
 	float d = Vec3Df::dotProduct(N,vector0);
 
-	// compute t (equation 3)
+	// compute distance t (equation 3)
 	float t =  -(Vec3Df::dotProduct(N, origin) - d) / NdotRayDir;
 	// check if the triangle is in behind the ray
 	if (t < 0) return -1; // the triangle is behind
@@ -69,7 +69,7 @@ float rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
 	Vec3Df C; // vector perpendicular to triangle's plane 
 
 	// edge 0
-	Vec3Df edge0 = vector1 - vector0;
+	Vec3Df edge0 = v0v1;
 	Vec3Df vp0 = P - vector0;
 	C = Vec3Df::crossProduct(edge0,vp0);
 	if (Vec3Df::dotProduct(N, C) < 0) return -1; // P is on the right side 
@@ -100,14 +100,14 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	std::vector<Vertex> vertices = MyMesh.vertices;
 
 	std::vector<Triangle>::const_iterator iterator;
-	float closest = 10000000000;
+	float closest = -1;
 	int index = 0;
 	int triangleIndex;
 	Triangle res;
 	for (iterator = Triangles.begin(); iterator != Triangles.end(); ++iterator) {
 		Triangle tr = *iterator;
 		float distance = rayIntersect(origin, dest, tr);
-		if ( (closest > distance) & distance != -1){
+		if (((closest > distance)|| closest == -1) & distance != -1){
 			closest = distance;
 			res = tr; 
 			triangleIndex = index;
@@ -116,7 +116,7 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest)
 	}
 
 
-	if (closest != 10000000000){
+	if (closest != -1){
 		Material material = materials[triangleMaterials[triangleIndex]];
 
 		Vec3Df vector0 = vertices[res.v[0]].p;
@@ -245,28 +245,5 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	//try it: Press a key, move the camera, see the ray that was launched as a line.
 	testRayOrigin=rayOrigin;	
 	testRayDestination=rayDestination;
-
-	std::vector<Triangle> Triangles = MyMesh.triangles;
-	std::vector<unsigned int> triangleMaterials = MyMesh.triangleMaterials;
-	std::vector<Material> materials = MyMesh.materials;
-	std::vector<Vertex> vertices = MyMesh.vertices;
-
-	std::vector<Triangle>::const_iterator iterator;
-	float closest = 10000000000;
-	int index = 0;
-	int triangleIndex;
-	Triangle res;
-	for (iterator = Triangles.begin(); iterator != Triangles.end(); ++iterator) {
-		Triangle tr = *iterator;
-		float distance = rayIntersect(rayOrigin, rayDestination, tr);
-		if ((closest > distance) & distance != -1){
-			closest = distance;
-			res = tr;
-			triangleIndex = index;
-
-			std::cout << t << " we hit triangle number " << index << std::endl;
-		}
-		index++;
-	}
 
 }
