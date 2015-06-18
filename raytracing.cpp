@@ -12,8 +12,6 @@
 //a simple debug drawing. A ray 
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
-Vec3Df hitTmp;
-Vec3Df hitPoint;
 
 
 //use this function for any preprocessing of the mesh.
@@ -26,7 +24,7 @@ void init()
 	//PLEASE ADAPT THE LINE BELOW TO THE FULL PATH OF THE dodgeColorTest.obj
 	//model, e.g., "C:/temp/myData/GraphicsIsFun/dodgeColorTest.obj", 
 	//otherwise the application will not load properly
-    //MyMesh.loadMesh("../dodgeColorTest.obj", true);
+	//MyMesh.loadMesh("../dodgeColorTest.obj", true);
 	MyMesh.loadMesh("../cube_floor_reflect.obj", true);
 
 	MyMesh.computeVertexNormals();
@@ -36,8 +34,35 @@ void init()
 	//here, we set it to the current location of the camera
 	MyLightPositions.push_back(MyCameraPosition);
 }
+class hitResult
+{
+public:
+	hitResult(Triangle tr, int index, Vec3Df p, float dist);
+	hitResult();
 
-float rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
+	Triangle triangle;
+	Vec3Df point;
+	float distance;
+	bool hit;
+	int triangleIndex;
+private:
+
+};
+hitResult::hitResult()
+{
+	hit = false;
+}
+
+hitResult::hitResult(Triangle tr, int index, Vec3Df p, float dist)
+{
+	triangle = tr;
+	point = p;
+	distance = dist;
+	hit = true;
+	triangleIndex = index;
+}
+
+hitResult rayIntersect(const Vec3Df & origin, const Vec3Df & dest, Triangle tr, int index){
 
 	Vec3Df dir = dest - origin;
 	dir.normalize();
@@ -55,41 +80,81 @@ float rayIntersect(const Vec3Df & origin, const Vec3Df & dest,Triangle tr){
 
 	float NdotRayDir = Vec3Df::dotProduct(N, dir);
 	if (NdotRayDir >= 0){
-		return -1;
+		return hitResult();
 	}
 
-	float d = Vec3Df::dotProduct(N,vector0);
+	float d = Vec3Df::dotProduct(N, vector0);
 
 	// compute distance t (equation 3)
-	float t =  -(Vec3Df::dotProduct(N, origin) - d) / NdotRayDir;
+	float t = -(Vec3Df::dotProduct(N, origin) - d) / NdotRayDir;
 	// check if the triangle is in behind the ray
-	if (t < 0) return -1; // the triangle is behind
+	if (t < 0) return hitResult(); // the triangle is behind
 
 	// compute the intersection point using equation 1
 	Vec3Df P = origin + t * dir;
-	hitTmp = P;
 	// Step 2: inside-outside test
 	Vec3Df C; // vector perpendicular to triangle's plane 
 
 	// edge 0
 	Vec3Df edge0 = v0v1;
 	Vec3Df vp0 = P - vector0;
-	C = Vec3Df::crossProduct(edge0,vp0);
-	if (Vec3Df::dotProduct(N, C) < 0) return -1; // P is on the right side 
+	C = Vec3Df::crossProduct(edge0, vp0);
+	if (Vec3Df::dotProduct(N, C) < 0) return hitResult(); // P is on the right side 
 
 	// edge 1
 	Vec3Df edge1 = vector2 - vector1;
 	Vec3Df vp1 = P - vector1;
-	C = Vec3Df::crossProduct(edge1,vp1);
-	if (Vec3Df::dotProduct(N, C) < 0)  return -1; // P is on the right side 
+	C = Vec3Df::crossProduct(edge1, vp1);
+	if (Vec3Df::dotProduct(N, C) < 0)  return hitResult(); // P is on the right side 
 
 	// edge 2
 	Vec3Df edge2 = vector0 - vector2;
 	Vec3Df vp2 = P - vector2;
-	C = Vec3Df::crossProduct(edge2,vp2);
-	if (Vec3Df::dotProduct(N,C) < 0) return -1; // P is on the right side; 
+	C = Vec3Df::crossProduct(edge2, vp2);
+	if (Vec3Df::dotProduct(N, C) < 0) return hitResult(); // P is on the right side; 
 
-	return t; // this ray hits the triangle 
+	return hitResult(tr, index, P, t); // this ray hits the triangle 
+}
+
+hitResult closestHit(const Vec3Df & origin, const Vec3Df & dest){
+
+	std::vector<Triangle> Triangles = MyMesh.triangles;
+	std::vector<Vertex> Vertices = MyMesh.vertices;
+
+	//Find the direction of the ray
+	Vec3Df dir = dest - origin;
+	dir.normalize();
+
+
+	int index = 0;
+	float closest = -1;
+	hitResult res;
+	std::vector<Triangle>::const_iterator iterator;
+	for (iterator = Triangles.begin(); iterator != Triangles.end(); ++iterator) {
+		Triangle tr = *iterator;
+
+		//Get the normal of the triangle
+		Vec3Df vector0 = Vertices[tr.v[0]].p;
+		Vec3Df vector1 = Vertices[tr.v[1]].p;
+		Vec3Df vector2 = Vertices[tr.v[2]].p;
+
+		Vec3Df v0v1 = vector1 - vector0;
+		Vec3Df v0v2 = vector2 - vector0;
+
+		Vec3Df N = Vec3Df::crossProduct(v0v1, v0v2);
+		N.normalize();
+
+		// find if the ray would intersect the plane
+		hitResult hit = rayIntersect(origin, dest, tr, index);
+		if ((closest == -1 || hit.distance > closest) & hit.hit){
+
+			res = hit;
+
+		}
+		index++;
+	}
+
+	return res;
 }
 
 
@@ -104,30 +169,15 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth
 
 	std::vector<Triangle>::const_iterator iterator;
 	float closest = -1;
-	int index = 0;
-	int triangleIndex;
-	Triangle res;
-	Triangle hitTriangle;
-	for (iterator = Triangles.begin(); iterator != Triangles.end(); ++iterator) {
-		Triangle tr = *iterator;
-		float distance = rayIntersect(origin, dest, tr);
-		if (((closest > distance)|| closest == -1) & distance != -1){
-			closest = distance;
-			res = tr;
-			hitTriangle = tr;
-			hitPoint = hitTmp;
-			triangleIndex = index;
-		}
-		index++;
-	}
 
-
-	if (closest != -1){
-		Material material = materials[triangleMaterials[triangleIndex]];
-
-		Vec3Df vector0 = vertices[res.v[0]].p;
-		Vec3Df vector1 = vertices[res.v[1]].p;
-		Vec3Df vector2 = vertices[res.v[2]].p;
+	hitResult hit = closestHit(origin, dest);
+	Triangle triangle = hit.triangle;
+	
+	if (hit.hit){
+		Material material = materials[triangleMaterials[hit.triangleIndex]];
+		Vec3Df vector0 = vertices[triangle.v[0]].p;
+		Vec3Df vector1 = vertices[triangle.v[1]].p;
+		Vec3Df vector2 = vertices[triangle.v[2]].p;
 		Vec3Df v0v1 = vector1 - vector0;
 		Vec3Df v0v2 = vector2 - vector0;
 		Vec3Df N = Vec3Df::crossProduct(v0v1, v0v2);
@@ -137,6 +187,8 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth
 		Vec3Df kS = material.Ks();
 		float shine = material.Ns();
 		float Tr = material.Tr();
+		int illum = material.illum();
+
 		Vec3Df dir = dest - origin;
 		dir.normalize();
 		Vec3Df res;
@@ -145,20 +197,20 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth
 			bool shadow = false;
 			Vec3Df pos = *it;
 
+			Vec3Df l = pos - hit.point;
+			float lightDist = l.getLength();
+			l.normalize();
+
 			for (iterator = Triangles.begin(); iterator != Triangles.end(); ++iterator) {
 				Triangle tr = *iterator;
-				float distance = rayIntersect(hitPoint, pos, tr);
-				Vec3Df LightVector = pos - hitPoint;
-				float lightDist = LightVector.getLength();
-				if (distance != -1 && distance < lightDist) {
+
+				hitResult result = rayIntersect(hit.point, pos, tr, 0);
+				if (result.hit && hit.distance < lightDist) {
 					shadow = true;
 					break;
 				}
 			}
-			Vec3Df surfaceP = hitPoint;
-			Vec3Df l = pos - surfaceP;
 			N.normalize();
-			l.normalize();
 			float dot = Vec3Df::dotProduct(l, N);
 
 			if (dot <= 0.0) {
@@ -170,7 +222,8 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth
 				if (dot > 0.0){
 					res = res + dot*kD;
 				}
-				Vec3Df viewDir = MyCameraPosition - surfaceP;
+
+				Vec3Df viewDir = MyCameraPosition - hit.point;
 				Vec3Df reflectDir = -l - 2.0*Vec3Df::dotProduct(N, -l)*N;
 				viewDir.normalize();
 				//reflectDir.normalize();
@@ -182,17 +235,18 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth
 				else {
 					//	res = res + kS*pow(0.0,32);
 				}
-				res = res + kA + kS;
-				index++;
 
 			}
+			res = res + kA;
 		}
 
-		if (depth < 1 & Tr > 0){
+		//Reflection
+		if (illum == 3 & depth < 1 & shine > 0.0){
 			N.normalize();
 			Vec3Df r = dir - 2 * (Vec3Df::dotProduct(N, dir)*N);
 			depth++;
-			res += Tr * performRayTracing(hitPoint, r + hitPoint, depth);
+			res += shine/1000 * performRayTracing(hit.point, r + hit.point, depth);
+			//std::cout << " Reflection: " << shine * kS* performRayTracing(hit.point, r + hit.point, depth);
 		}
 
 		return res;
@@ -275,8 +329,18 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	//here, as an example, I use the ray to fill in the values for my upper global ray variable
 	//I use these variables in the debugDraw function to draw the corresponding ray.
 	//try it: Press a key, move the camera, see the ray that was launched as a line.
-	testRayOrigin=rayOrigin;	
-	testRayDestination=rayDestination;
+
+	std::vector<unsigned int> triangleMaterials = MyMesh.triangleMaterials;
+	std::vector<Material> materials = MyMesh.materials;
+
+	testRayOrigin = rayOrigin;
+	hitResult hit = closestHit(rayOrigin, rayDestination);
+	Vec3Df dir = rayDestination - rayOrigin;
 	int depth = 0;
+	dir.normalize();
+	testRayDestination = rayOrigin + dir * hit.distance;
 	performRayTracing(rayOrigin, rayDestination, depth);
+	Material material = materials[triangleMaterials[hit.triangleIndex]];
+	std::cout << material.illum() << std::endl;
+	std::cout << material.Ns() << std::endl;
 }
