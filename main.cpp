@@ -192,6 +192,24 @@ void produceRay(int x_I, int y_I, Vec3Df * origin, Vec3Df * dest)
 
 
 
+void calculatePixel(Image & result, int x, int y, Vec3Df &origin, Vec3Df &dest, Vec3Df & dest00, Vec3Df & dest10, Vec3Df & dest01, Vec3Df & dest11, Vec3Df & origin00, Vec3Df & origin10, Vec3Df & origin01, Vec3Df & origin11){
+	//produce the rays for each pixel, by interpolating 
+	//the four rays of the frustum corners.
+	float xscale = 1.0f - float(x) / (WindowSize_X - 1);
+	float yscale = 1.0f - float(y) / (WindowSize_Y - 1);
+
+	origin = yscale*(xscale*origin00 + (1 - xscale)*origin10) +
+		(1 - yscale)*(xscale*origin01 + (1 - xscale)*origin11);
+	dest = yscale*(xscale*dest00 + (1 - xscale)*dest10) +
+		(1 - yscale)*(xscale*dest01 + (1 - xscale)*dest11);
+
+
+	//launch raytracing for the given ray.
+	int depth = 0;
+	Vec3Df rgb = performRayTracing(origin, dest, depth);
+	//store the result in an image 
+	result.setPixel(x, y, RGBValue(rgb[0], rgb[1], rgb[2]));
+}
 
 
 
@@ -209,7 +227,12 @@ void keyboard(unsigned char key, int x, int y)
 		MyLightPositions.push_back(getCameraPosition());
 		break;
 	case 'l':
-		MyLightPositions[MyLightPositions.size()-1]=getCameraPosition();
+		if (MyLightPositions.size() != 0){
+			MyLightPositions[MyLightPositions.size() - 1] = getCameraPosition();
+		}
+		else{
+			MyLightPositions.push_back(getCameraPosition());
+		}
 		break;
 	case 'r':
 	{
@@ -217,7 +240,7 @@ void keyboard(unsigned char key, int x, int y)
 		cout<<"Raytracing"<<endl;
 		std::clock_t start;
 		double duration;
-
+		srand(time(NULL));
 		start = std::clock();
 
 		//Setup an image with the size of the current image.
@@ -237,27 +260,20 @@ void keyboard(unsigned char key, int x, int y)
 		produceRay(WindowSize_X-1,0, &origin10, &dest10);
 		produceRay(WindowSize_X-1,WindowSize_Y-1, &origin11, &dest11);
 
-		
+		int index = 0;
 		for (unsigned int y=0; y<WindowSize_Y;++y)
 			for (unsigned int x=0; x<WindowSize_X;++x)
 			{
-				//produce the rays for each pixel, by interpolating 
-				//the four rays of the frustum corners.
-				float xscale=1.0f-float(x)/(WindowSize_X-1);
-				float yscale=1.0f-float(y)/(WindowSize_Y-1);
+				calculatePixel(result, x, y, origin, dest, dest00, dest10, dest01, dest11, origin00, origin10, origin01, origin11);
 
-				origin=yscale*(xscale*origin00+(1-xscale)*origin10)+
-					(1-yscale)*(xscale*origin01+(1-xscale)*origin11);
-				dest=yscale*(xscale*dest00+(1-xscale)*dest10)+
-					(1-yscale)*(xscale*dest01+(1-xscale)*dest11);
-
-				//launch raytracing for the given ray.
-				int depth = 0;
-				Vec3Df rgb = performRayTracing(origin, dest, depth);
-				//store the result in an image 
-				result.setPixel(x,y, RGBValue(rgb[0], rgb[1], rgb[2]));
+				if ((index % 2000) == 0){
+					int progress = ((float)index / (float)(WindowSize_X*WindowSize_Y)) * 100;
+					std::cout << "Progress: " << progress << "%";
+					std::cout.flush();
+					std::cout << "\r";
+				}
+				index++;
 			}
-
 		result.writeImage("result.ppm");
 
 
@@ -276,4 +292,3 @@ void keyboard(unsigned char key, int x, int y)
 
 	yourKeyboardFunc(key,x,y, testRayOrigin, testRayDestination);
 }
-

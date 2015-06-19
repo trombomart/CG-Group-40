@@ -5,6 +5,7 @@
 #include <GL/glut.h>
 #include "raytracing.h"
 #include <math.h> 
+#include <thread>
 
 
 //temporary variables
@@ -12,7 +13,6 @@
 //a simple debug drawing. A ray 
 Vec3Df testRayOrigin;
 Vec3Df testRayDestination;
-
 
 //use this function for any preprocessing of the mesh.
 void init()
@@ -32,8 +32,21 @@ void init()
 	//one first move: initialize the first light source
 	//at least ONE light source has to be in the scene!!!
 	//here, we set it to the current location of the camera
-	MyLightPositions.push_back(MyCameraPosition);
+	//MyLightPositions.push_back(MyCameraPosition);
 }
+
+
+Vec3Df random_unit_vector() {
+	double z = ((double)rand() / (double)RAND_MAX);
+	double theta = z * (2.0 * 3.14159265358979323846);
+	double x = z * (2.0) - 1.0;
+	double s = sqrt(1.0 - x * x);
+
+	return Vec3Df(x, s * cos(theta), s * sin(theta));
+}
+
+
+
 class hitResult
 {
 public:
@@ -158,6 +171,82 @@ hitResult closestHit(const Vec3Df & origin, const Vec3Df & dest){
 }
 
 
+//Test if point1 can see point2
+bool visible(Vec3Df point1, Vec3Df point2){
+
+	std::vector<Triangle> Triangles = MyMesh.triangles;
+
+	Vec3Df l = point2 - point1;
+	float distance = l.getLength();
+	std::vector<Triangle>::const_iterator iterator;
+
+	for (iterator = Triangles.begin(); iterator != Triangles.end(); ++iterator) {
+		Triangle tr = *iterator;
+
+		hitResult result = rayIntersect(point1, point2, tr, 0);
+		if (result.hit && result.distance < distance) {
+			return false;
+		}
+	}
+	return true;
+}
+
+// Soft light class
+class SoftLight
+{
+public:
+	SoftLight();
+	SoftLight(Vec3Df pos, float radius);
+	Vec3Df position;
+	float visibility(Vec3Df point){
+
+		index = 0;
+		totalHits = 0;
+
+		std::thread t[samples];
+		while (index < samples){
+			Vec3Df RP = position + radius * random_unit_vector();
+			t[index] = std::thread(&SoftLight::addLightHit,this, point,RP);
+			index++;
+		}
+		index = 0;
+		while (index < samples){
+			t[index].join();
+			index++;
+		}
+		float visibility = (float)totalHits / (float)samples;
+		return visibility;
+	}
+
+private:
+
+	//Sample size
+	static const int samples = 4;
+	int totalHits;
+	int index;
+	float radius;
+	void addLightHit(Vec3Df point, Vec3Df RP){
+		if (visible(point, RP)){
+			totalHits++;
+		}
+	}
+};
+
+SoftLight::SoftLight()
+{
+}
+
+SoftLight::SoftLight(Vec3Df pos, float rad)
+{
+	position = pos;
+	radius = rad;
+
+}
+
+std::vector<SoftLight> SoftLights;
+
+
+
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth)
 {
@@ -192,24 +281,15 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth
 		Vec3Df dir = dest - origin;
 		dir.normalize();
 		Vec3Df res;
-
+		//Normal lights
 		for (std::vector<Vec3Df>::const_iterator it = MyLightPositions.begin(); it != MyLightPositions.end(); it++){
-			bool shadow = false;
 			Vec3Df pos = *it;
-
+			bool shadow = !visible(hit.point, pos);
+			
 			Vec3Df l = pos - hit.point;
 			float lightDist = l.getLength();
 			l.normalize();
 
-			for (iterator = Triangles.begin(); iterator != Triangles.end(); ++iterator) {
-				Triangle tr = *iterator;
-
-				hitResult result = rayIntersect(hit.point, pos, tr, 0);
-				if (result.hit && hit.distance < lightDist) {
-					shadow = true;
-					break;
-				}
-			}
 			N.normalize();
 			float dot = Vec3Df::dotProduct(l, N);
 
@@ -237,7 +317,29 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth
 				}
 
 			}
-			res = res + kA;
+		}
+		res = res + kA;
+
+		// SoftLights
+		for (std::vector<SoftLight>::const_iterator it = SoftLights.begin(); it != SoftLights.end(); it++){
+			SoftLight light = *it;
+			float shadow = light.visibility(hit.point);
+			Vec3Df l = light.position - hit.point;
+			float lightDist = l.getLength();
+			l.normalize();
+
+			N.normalize();
+			float dot = Vec3Df::dotProduct(l, N);
+
+			if (dot <= 0.0) {
+				res = res + kD*0.2;
+			}
+
+			if (dot > 0.0){
+				res = res + dot*kD*shadow;
+			}
+
+
 		}
 
 		//Reflection
@@ -293,7 +395,7 @@ void yourDebugDraw()
 	glEnd();
 	glPointSize(10);
 	glBegin(GL_POINTS);
-	glVertex3fv(MyLightPositions[0].pointer());
+	//glVertex3fv(MyLightPositions[0].pointer());
 	glEnd();
 	glPopAttrib();
 	
@@ -323,7 +425,7 @@ void yourDebugDraw()
 //    the target of the ray - see the code above), but once you replaced 
 //    this function and raytracing is in place, it might take a 
 //    while to complete...
-void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3Df & rayDestination)
+void yourKeyboardFunc(char key, int x, int y, const Vec3Df & rayOrigin, const Vec3Df & rayDestination)
 {
 
 	//here, as an example, I use the ray to fill in the values for my upper global ray variable
@@ -340,7 +442,22 @@ void yourKeyboardFunc(char t, int x, int y, const Vec3Df & rayOrigin, const Vec3
 	dir.normalize();
 	testRayDestination = rayOrigin + dir * hit.distance;
 	performRayTracing(rayOrigin, rayDestination, depth);
-	Material material = materials[triangleMaterials[hit.triangleIndex]];
-	std::cout << material.illum() << std::endl;
-	std::cout << material.Ns() << std::endl;
+	//std::cout << material.illum() << std::endl;
+	//std::cout << material.Ns() << std::endl;
+	//std::cout << hit.distance << std::endl;
+	switch (key)
+	{
+	case 'o':
+		if (SoftLights.size() != 0){
+			SoftLights[SoftLights.size() - 1] = SoftLight(rayOrigin, 0.5);
+		}
+		else{
+			SoftLights.push_back(SoftLight(rayOrigin, 0.5));
+		}
+		break;
+
+	case 'O':
+		SoftLights.push_back(SoftLight(rayOrigin, 0.5));
+		break;
+	}
 }
