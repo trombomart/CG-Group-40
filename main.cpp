@@ -37,6 +37,7 @@ const unsigned int WindowSize_Y = 200;  // resolution Y
 const int threads = 8;
 const int sampleSize = 16;
 
+std::clock_t start;
 
 Image result(WindowSize_X, WindowSize_Y);
 int calculatedPixels = 0;
@@ -228,7 +229,8 @@ void threadRayTrace(int i){
 			calculatedPixels++;
 			if ((calculatedPixels % ((WindowSize_X*WindowSize_Y) / 100)) == 0){
 				int progress = ((float)calculatedPixels / (float)(WindowSize_X*WindowSize_Y)) * 100;
-				std::cout << "Progress: " << progress << "%";
+				int time = (((std::clock() - start) / progress)*(100 - progress))/1000;
+				std::cout << "Progress: " << progress << "% Time remaining: " << time << " seconds";
 				std::cout.flush();
 				std::cout << "\r";
 			}
@@ -249,7 +251,6 @@ void keyboard(unsigned char key, int x, int y)
 	{
 		//Pressing r will launch the raytracing.
 		std::cout << "Raytracing" << std::endl;
-		std::clock_t start;
 		double duration;
 		start = std::clock();
 		calculatedPixels = 0;
@@ -266,29 +267,29 @@ void keyboard(unsigned char key, int x, int y)
 		materials = MyMesh.materials;
 		vertices = MyMesh.vertices;
 
-		for (int i = 0; i < threads; i++){
+		for (int i = 0; i < threads-1; i++){
 			t[i] = std::thread(threadRayTrace, i);
 		}
 
-		for (int i = 0; i < threads; i++){
+		threadRayTrace(threads - 1);
+
+		for (int i = 0; i < threads - 1; i++){
 			t[i].join();
-
-			for (unsigned int y = i; y < WindowSize_Y;){
-				for (unsigned int x = 0; x < WindowSize_X; ++x)
-				{
-
-					Vec3Df rgb = buffer[y][x];
-					result.setPixel(x, y, RGBValue(rgb[0], rgb[1], rgb[2]));
-				}
-				y = y + threads;
-			}
 		}
 
+		for (unsigned int y = 0; y < WindowSize_Y; ++y){
+			for (unsigned int x = 0; x < WindowSize_X; ++x)
+			{
+
+				Vec3Df rgb = buffer[y][x];
+				result.setPixel(x, y, RGBValue(rgb[0], rgb[1], rgb[2]));
+			}
+		}
 		result.writeImage("result.ppm");
 
 
 		duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-		std::cout << "Total time: " << duration << " seconds" << '\n';
+		std::cout << std::endl << "Total time: " << duration << " seconds" << '\n';
 		break;
 	}
 	case 27:     // touche ESC

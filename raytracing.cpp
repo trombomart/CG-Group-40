@@ -51,7 +51,7 @@ Vec3Df random_unit_vector() {
 class hitResult
 {
 public:
-	hitResult(Triangle tr, int index, Vec3Df p, float dist, Vec3Df normal, float u, float v);
+	hitResult(Triangle & tr, int & index, Vec3Df & p, float & dist, Vec3Df & normal, float & u, float & v);
 	hitResult();
 	Triangle triangle;
 	Vec3Df point;
@@ -69,7 +69,7 @@ hitResult::hitResult()
 	hit = false;
 }
 
-hitResult::hitResult(Triangle tr, int index, Vec3Df p, float dist, Vec3Df norm,float U,float V)
+hitResult::hitResult(Triangle & tr, int & index, Vec3Df & p, float &  dist, Vec3Df & norm,float & U,float & V)
 {
 	triangle = tr;
 	point = p;
@@ -81,7 +81,7 @@ hitResult::hitResult(Triangle tr, int index, Vec3Df p, float dist, Vec3Df norm,f
 	v = V;
 }
 
-hitResult rayIntersect(const Vec3Df & origin, const Vec3Df & dest, Triangle & tr, int & index){
+hitResult rayIntersect(const Vec3Df & origin, const Vec3Df & dest, Triangle & tr, int index){
 
 	Vec3Df dir = dest - origin;
 	dir.normalize();
@@ -135,7 +135,7 @@ hitResult rayIntersect(const Vec3Df & origin, const Vec3Df & dest, Triangle & tr
 	u /= denom;
 	v /= denom;
 	Vec3Df normal = u * vertices[tr.v[0]].n + v *  vertices[tr.v[1]].n + (1 - u - v) *  vertices[tr.v[2]].n;
-
+	normal.normalize();
 	return hitResult(tr, index, P, t, normal, u, v); // this ray hits the triangle 
 }
 
@@ -154,8 +154,8 @@ hitResult closestHit(const Vec3Df & origin, const Vec3Df & dest){
 		Triangle tr = *iterator;
 		
 		// find if the ray would intersect the plane
-		hitResult hit = rayIntersect(origin, dest, tr, index);
-		if ((closest == -1 || hit.distance < closest) & hit.hit){
+		hitResult& hit = rayIntersect(origin, dest, tr, index);
+		if ((closest == -1 || hit.distance <= closest) & hit.hit){
 
 			res = hit;
 			closest = res.distance;
@@ -260,14 +260,20 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 	Triangle& triangle = hit.triangle;
 	
 	if (hit.hit){
-		Material material = materials[triangleMaterials[hit.triangleIndex]];
+		Material & material = materials[triangleMaterials[hit.triangleIndex]];
 
 		Vec3Df& N = hit.normal;
 		Vec3Df kD = material.Kd();
 		Vec3Df kA = material.Ka();
+
+		//Specular/reflection0
 		Vec3Df kS = material.Ks();
 		float shine = material.Ns();
-		float Tr = material.Tr();
+
+		//Transparancy
+		float Ni = material.Ni();
+		float d = material.Tr();
+
 		int illum = material.illum();
 
 		Vec3Df dir = dest - origin;
@@ -288,9 +294,7 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 			
 				if (shadow == false){
 
-					if (dot > 0.0){
-						res = res + dot*kD;
-					}
+					res += dot*kD;
 
 					Vec3Df viewDir = origin - dest;
 					Vec3Df reflectDir = viewDir - 2 * (Vec3Df::dotProduct(N, dir)*N);
@@ -306,28 +310,35 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 
 		// SoftLights
 		for (std::vector<SoftLight>::const_iterator it = SoftLights.begin(); it != SoftLights.end(); it++){
+
 			SoftLight light = *it;
-			float shadow = light.visibility(hit.point);
 			Vec3Df l = light.position - hit.point;
-			float lightDist = l.getLength();
 			l.normalize();
 
-			N.normalize();
 			float dot = Vec3Df::dotProduct(l, N);
 
-			if (dot <= 0.0) {
-				res = res + kD*0.2;
-			}
 
-			if (dot > 0.0){
-				res = res + (dot + 0.2)*kD*shadow;
+			if (dot > 0.0) {
+				float shadow = light.visibility(hit.point);
+
+				if (shadow > 0){
+
+					res += dot*kD*shadow;
+
+					Vec3Df viewDir = origin - dest;
+					Vec3Df reflectDir = viewDir - 2 * (Vec3Df::dotProduct(N, dir)*N);
+					viewDir.normalize();
+					reflectDir.normalize();
+					float dotSpec = Vec3Df::dotProduct(viewDir, reflectDir);
+					//res += kS * light.color*pow(dotSpec, shine);
+				}
+
 			}
 
 		}
 
 		//Reflection
 		if (illum == 3 & depth < 1 & shine > 0.0){
-			N.normalize();
 			Vec3Df r = dir - 2 * (Vec3Df::dotProduct(N, dir)*N);
 			depth++;
 			res += shine / 1000 * performRayTracing(hit.point, r + hit.point, depth);
