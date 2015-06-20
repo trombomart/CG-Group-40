@@ -50,7 +50,7 @@ Vec3Df random_unit_vector() {
 class hitResult
 {
 public:
-	hitResult(Triangle tr, int index, Vec3Df p, float dist);
+	hitResult(Triangle & tr, int & index, Vec3Df & p, float & dist);
 	hitResult();
 
 	Triangle triangle;
@@ -66,7 +66,7 @@ hitResult::hitResult()
 	hit = false;
 }
 
-hitResult::hitResult(Triangle tr, int index, Vec3Df p, float dist)
+hitResult::hitResult(Triangle & tr, int  & index, Vec3Df & p, float & dist)
 {
 	triangle = tr;
 	point = p;
@@ -75,15 +75,14 @@ hitResult::hitResult(Triangle tr, int index, Vec3Df p, float dist)
 	triangleIndex = index;
 }
 
-hitResult rayIntersect(const Vec3Df & origin, const Vec3Df & dest, Triangle tr, int index){
+hitResult rayIntersect(const Vec3Df & origin, const Vec3Df & dest, Triangle & tr, int & index){
 
 	Vec3Df dir = dest - origin;
 	dir.normalize();
-	std::vector<Vertex> Vertices = MyMesh.vertices;
 
-	Vec3Df vector0 = Vertices[tr.v[0]].p;
-	Vec3Df vector1 = Vertices[tr.v[1]].p;
-	Vec3Df vector2 = Vertices[tr.v[2]].p;
+	Vec3Df& vector0 = vertices[tr.v[0]].p;
+	Vec3Df& vector1 = vertices[tr.v[1]].p;
+	Vec3Df& vector2 = vertices[tr.v[2]].p;
 
 	Vec3Df v0v1 = vector1 - vector0;
 	Vec3Df v0v2 = vector2 - vector0;
@@ -109,7 +108,7 @@ hitResult rayIntersect(const Vec3Df & origin, const Vec3Df & dest, Triangle tr, 
 	Vec3Df C; // vector perpendicular to triangle's plane 
 
 	// edge 0
-	Vec3Df edge0 = v0v1;
+	Vec3Df& edge0 = v0v1;
 	Vec3Df vp0 = P - vector0;
 	C = Vec3Df::crossProduct(edge0, vp0);
 	if (Vec3Df::dotProduct(N, C) < 0) return hitResult(); // P is on the right side 
@@ -130,10 +129,7 @@ hitResult rayIntersect(const Vec3Df & origin, const Vec3Df & dest, Triangle tr, 
 }
 
 hitResult closestHit(const Vec3Df & origin, const Vec3Df & dest){
-
-	std::vector<Triangle> Triangles = MyMesh.triangles;
-	std::vector<Vertex> Vertices = MyMesh.vertices;
-
+	
 	//Find the direction of the ray
 	Vec3Df dir = dest - origin;
 	dir.normalize();
@@ -142,23 +138,12 @@ hitResult closestHit(const Vec3Df & origin, const Vec3Df & dest){
 	int index = 0;
 	float closest = -1;
 	hitResult res;
-	std::vector<Triangle>::const_iterator iterator;
+	std::vector<Triangle>::const_iterator iterator; 
 	for (iterator = Triangles.begin(); iterator != Triangles.end(); ++iterator) {
 		Triangle tr = *iterator;
-
-		//Get the normal of the triangle
-		Vec3Df vector0 = Vertices[tr.v[0]].p;
-		Vec3Df vector1 = Vertices[tr.v[1]].p;
-		Vec3Df vector2 = Vertices[tr.v[2]].p;
-
-		Vec3Df v0v1 = vector1 - vector0;
-		Vec3Df v0v2 = vector2 - vector0;
-
-		Vec3Df N = Vec3Df::crossProduct(v0v1, v0v2);
-		N.normalize();
-
+		
 		// find if the ray would intersect the plane
-		hitResult hit = rayIntersect(origin, dest, tr, index);
+		hitResult& hit = rayIntersect(origin, dest, tr, index);
 		if ((closest == -1 || hit.distance > closest) & hit.hit){
 
 			res = hit;
@@ -172,18 +157,18 @@ hitResult closestHit(const Vec3Df & origin, const Vec3Df & dest){
 
 
 //Test if point1 can see point2
-bool visible(Vec3Df point1, Vec3Df point2){
+bool visible(Vec3Df & point1, Vec3Df & point2){
 
 	std::vector<Triangle> Triangles = MyMesh.triangles;
 
 	Vec3Df l = point2 - point1;
 	float distance = l.getLength();
 	std::vector<Triangle>::const_iterator iterator;
+	int index = 0;
 
 	for (iterator = Triangles.begin(); iterator != Triangles.end(); ++iterator) {
 		Triangle tr = *iterator;
-
-		hitResult result = rayIntersect(point1, point2, tr, 0);
+		hitResult& result = rayIntersect(point1, point2, tr, index);
 		if (result.hit && result.distance < distance) {
 			return false;
 		}
@@ -196,47 +181,36 @@ class SoftLight
 {
 public:
 	SoftLight();
-	SoftLight(Vec3Df pos, float radius);
+	SoftLight(Vec3Df pos, double radius);
 	Vec3Df position;
 	float visibility(Vec3Df point){
 
 		index = 0;
 		totalHits = 0;
-
-		std::thread t[samples];
-		while (index < samples){
+		while (index < sampleSize){
 			Vec3Df RP = position + radius * random_unit_vector();
-			t[index] = std::thread(&SoftLight::addLightHit,this, point,RP);
+			if (visible(point, RP)){
+				totalHits++;
+			}
 			index++;
 		}
-		index = 0;
-		while (index < samples){
-			t[index].join();
-			index++;
-		}
-		float visibility = (float)totalHits / (float)samples;
+		float visibility = (float)totalHits / (float)sampleSize;
 		return visibility;
 	}
 
 private:
 
 	//Sample size
-	static const int samples = 4;
 	int totalHits;
 	int index;
 	float radius;
-	void addLightHit(Vec3Df point, Vec3Df RP){
-		if (visible(point, RP)){
-			totalHits++;
-		}
-	}
 };
 
 SoftLight::SoftLight()
 {
 }
 
-SoftLight::SoftLight(Vec3Df pos, float rad)
+SoftLight::SoftLight(Vec3Df pos, double rad)
 {
 	position = pos;
 	radius = rad;
@@ -248,19 +222,12 @@ std::vector<SoftLight> SoftLights;
 
 
 //return the color of your pixel.
-Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth)
+Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 {
 
-	std::vector<Triangle> Triangles = MyMesh.triangles;
-	std::vector<unsigned int> triangleMaterials = MyMesh.triangleMaterials;
-	std::vector<Material> materials = MyMesh.materials;
-	std::vector<Vertex> vertices = MyMesh.vertices;
-
-	std::vector<Triangle>::const_iterator iterator;
-	float closest = -1;
 
 	hitResult hit = closestHit(origin, dest);
-	Triangle triangle = hit.triangle;
+	Triangle& triangle = hit.triangle;
 	
 	if (hit.hit){
 		Material material = materials[triangleMaterials[hit.triangleIndex]];
@@ -441,7 +408,7 @@ void yourKeyboardFunc(char key, int x, int y, const Vec3Df & rayOrigin, const Ve
 	int depth = 0;
 	dir.normalize();
 	testRayDestination = rayOrigin + dir * hit.distance;
-	performRayTracing(rayOrigin, rayDestination, depth);
+	Vec3Df color = performRayTracing(rayOrigin, rayDestination, depth);
 	//std::cout << material.illum() << std::endl;
 	//std::cout << material.Ns() << std::endl;
 	//std::cout << hit.distance << std::endl;
