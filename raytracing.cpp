@@ -26,6 +26,7 @@ void init()
 	//otherwise the application will not load properly
 	//MyMesh.loadMesh("../dodgeColorTest.obj", true);
 	MyMesh.loadMesh("../cube_floor_reflect.obj", true);
+	//MyMesh.loadMesh("../sphere_floor.obj", true);
 
 	MyMesh.computeVertexNormals();
 
@@ -50,7 +51,7 @@ Vec3Df random_unit_vector() {
 class hitResult
 {
 public:
-	hitResult(Triangle & tr, int & index, Vec3Df & p, float & dist);
+	hitResult(Triangle tr, int index, Vec3Df p, float dist);
 	hitResult();
 
 	Triangle triangle;
@@ -66,7 +67,7 @@ hitResult::hitResult()
 	hit = false;
 }
 
-hitResult::hitResult(Triangle & tr, int  & index, Vec3Df & p, float & dist)
+hitResult::hitResult(Triangle tr, int index, Vec3Df p, float dist)
 {
 	triangle = tr;
 	point = p;
@@ -143,10 +144,11 @@ hitResult closestHit(const Vec3Df & origin, const Vec3Df & dest){
 		Triangle tr = *iterator;
 		
 		// find if the ray would intersect the plane
-		hitResult& hit = rayIntersect(origin, dest, tr, index);
-		if ((closest == -1 || hit.distance > closest) & hit.hit){
+		hitResult hit = rayIntersect(origin, dest, tr, index);
+		if ((closest == -1 || hit.distance < closest) & hit.hit){
 
 			res = hit;
+			closest = res.distance;
 
 		}
 		index++;
@@ -267,7 +269,7 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 			if (shadow == false){
 
 				if (dot > 0.0){
-					res = res + dot*kD;
+					res = res + (dot + 0.2)*kD;
 				}
 
 				Vec3Df viewDir = MyCameraPosition - hit.point;
@@ -303,7 +305,7 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 			}
 
 			if (dot > 0.0){
-				res = res + dot*kD*shadow;
+				res = res + (dot + 0.2)*kD*shadow;
 			}
 
 
@@ -399,8 +401,10 @@ void yourKeyboardFunc(char key, int x, int y, const Vec3Df & rayOrigin, const Ve
 	//I use these variables in the debugDraw function to draw the corresponding ray.
 	//try it: Press a key, move the camera, see the ray that was launched as a line.
 
-	std::vector<unsigned int> triangleMaterials = MyMesh.triangleMaterials;
-	std::vector<Material> materials = MyMesh.materials;
+	Triangles = MyMesh.triangles;
+	triangleMaterials = MyMesh.triangleMaterials;
+	materials = MyMesh.materials;
+	vertices = MyMesh.vertices;
 
 	testRayOrigin = rayOrigin;
 	hitResult hit = closestHit(rayOrigin, rayDestination);
