@@ -51,12 +51,14 @@ Vec3Df random_unit_vector() {
 class hitResult
 {
 public:
-	hitResult(Triangle tr, int index, Vec3Df p, float dist);
+	hitResult(Triangle tr, int index, Vec3Df p, float dist, Vec3Df normal, float u, float v);
 	hitResult();
-
 	Triangle triangle;
 	Vec3Df point;
+	Vec3Df normal;
 	float distance;
+	float u;
+	float v;
 	bool hit;
 	int triangleIndex;
 private:
@@ -67,13 +69,16 @@ hitResult::hitResult()
 	hit = false;
 }
 
-hitResult::hitResult(Triangle tr, int index, Vec3Df p, float dist)
+hitResult::hitResult(Triangle tr, int index, Vec3Df p, float dist, Vec3Df norm,float U,float V)
 {
 	triangle = tr;
 	point = p;
 	distance = dist;
 	hit = true;
 	triangleIndex = index;
+	normal = norm;
+	u = U;
+	v = V;
 }
 
 hitResult rayIntersect(const Vec3Df & origin, const Vec3Df & dest, Triangle & tr, int & index){
@@ -89,7 +94,7 @@ hitResult rayIntersect(const Vec3Df & origin, const Vec3Df & dest, Triangle & tr
 	Vec3Df v0v2 = vector2 - vector0;
 
 	Vec3Df N = Vec3Df::crossProduct(v0v1, v0v2);
-	N.normalize();
+	float denom = Vec3Df::dotProduct(N,N);
 
 	float NdotRayDir = Vec3Df::dotProduct(N, dir);
 	if (NdotRayDir >= 0){
@@ -107,26 +112,31 @@ hitResult rayIntersect(const Vec3Df & origin, const Vec3Df & dest, Triangle & tr
 	Vec3Df P = origin + t * dir;
 	// Step 2: inside-outside test
 	Vec3Df C; // vector perpendicular to triangle's plane 
-
+	float u;
+	float v;
 	// edge 0
-	Vec3Df& edge0 = v0v1;
+	Vec3Df edge0 = v0v1;
 	Vec3Df vp0 = P - vector0;
-	C = Vec3Df::crossProduct(edge0, vp0);
-	if (Vec3Df::dotProduct(N, C) < 0) return hitResult(); // P is on the right side 
+	C = Vec3Df::crossProduct(edge0,vp0);
+	if (Vec3Df::dotProduct(N,C) < 0) return hitResult(); // P is on the right side 
 
 	// edge 1
 	Vec3Df edge1 = vector2 - vector1;
 	Vec3Df vp1 = P - vector1;
-	C = Vec3Df::crossProduct(edge1, vp1);
-	if (Vec3Df::dotProduct(N, C) < 0)  return hitResult(); // P is on the right side 
+	C = Vec3Df::crossProduct(edge1,vp1);
+	if ((u = Vec3Df::dotProduct(N,C)) < 0)  return hitResult(); // P is on the right side 
 
 	// edge 2
 	Vec3Df edge2 = vector0 - vector2;
 	Vec3Df vp2 = P - vector2;
-	C = Vec3Df::crossProduct(edge2, vp2);
-	if (Vec3Df::dotProduct(N, C) < 0) return hitResult(); // P is on the right side; 
+	C = Vec3Df::crossProduct(edge2,vp2);
+	if ((v = Vec3Df::dotProduct(N,C)) < 0) return hitResult(); // P is on the right side; 
 
-	return hitResult(tr, index, P, t); // this ray hits the triangle 
+	u /= denom;
+	v /= denom;
+	Vec3Df normal = u * vertices[tr.v[0]].n + v *  vertices[tr.v[1]].n + (1 - u - v) *  vertices[tr.v[2]].n;
+
+	return hitResult(tr, index, P, t, normal, u, v); // this ray hits the triangle 
 }
 
 hitResult closestHit(const Vec3Df & origin, const Vec3Df & dest){
@@ -178,6 +188,23 @@ bool visible(Vec3Df & point1, Vec3Df & point2){
 	return true;
 }
 
+//Normal light
+class Light
+{
+public:
+	Light(Vec3Df pos, Vec3Df col);
+	Vec3Df position;
+	Vec3Df color;
+private:
+
+};
+
+Light::Light(Vec3Df pos, Vec3Df col)
+{
+	position = pos;
+	color = col;
+}
+
 // Soft light class
 class SoftLight
 {
@@ -220,6 +247,7 @@ SoftLight::SoftLight(Vec3Df pos, double rad)
 }
 
 std::vector<SoftLight> SoftLights;
+std::vector<Light> Lights;
 
 
 
@@ -233,13 +261,8 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 	
 	if (hit.hit){
 		Material material = materials[triangleMaterials[hit.triangleIndex]];
-		Vec3Df vector0 = vertices[triangle.v[0]].p;
-		Vec3Df vector1 = vertices[triangle.v[1]].p;
-		Vec3Df vector2 = vertices[triangle.v[2]].p;
-		Vec3Df v0v1 = vector1 - vector0;
-		Vec3Df v0v2 = vector2 - vector0;
-		Vec3Df N = Vec3Df::crossProduct(v0v1, v0v2);
 
+		Vec3Df& N = hit.normal;
 		Vec3Df kD = material.Kd();
 		Vec3Df kA = material.Ka();
 		Vec3Df kS = material.Ks();
@@ -251,43 +274,35 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 		dir.normalize();
 		Vec3Df res;
 		//Normal lights
-		for (std::vector<Vec3Df>::const_iterator it = MyLightPositions.begin(); it != MyLightPositions.end(); it++){
-			Vec3Df pos = *it;
-			bool shadow = !visible(hit.point, pos);
-			
-			Vec3Df l = pos - hit.point;
-			float lightDist = l.getLength();
+		for (std::vector<Light>::const_iterator it = Lights.begin(); it != Lights.end(); it++){
+
+			Light light = *it;
+			Vec3Df l = light.position - hit.point;
 			l.normalize();
 
-			N.normalize();
 			float dot = Vec3Df::dotProduct(l, N);
 
-			if (dot <= 0.0) {
-				res = res + kD*0.2;
-			}
+
+			if (dot > 0.0) {
+				bool shadow = !visible(hit.point, light.position);
 			
-			if (shadow == false){
+				if (shadow == false){
 
-				if (dot > 0.0){
-					res = res + (dot + 0.2)*kD;
-				}
+					if (dot > 0.0){
+						res = res + dot*kD;
+					}
 
-				Vec3Df viewDir = MyCameraPosition - hit.point;
-				Vec3Df reflectDir = -l - 2.0*Vec3Df::dotProduct(N, -l)*N;
-				viewDir.normalize();
-				//reflectDir.normalize();
-				float dotSpec = Vec3Df::dotProduct(viewDir, reflectDir);
-				//res = res + kS*pow(cos(dotSpec), shine);
-				if (dotSpec > 0.0){
-					//	res = res + kS*pow(dotSpec, shine);
-				}
-				else {
-					//	res = res + kS*pow(0.0,32);
+					Vec3Df viewDir = origin - dest;
+					Vec3Df reflectDir = viewDir - 2 * (Vec3Df::dotProduct(N, dir)*N);
+					viewDir.normalize();
+					reflectDir.normalize();
+					float dotSpec = Vec3Df::dotProduct(viewDir, reflectDir);
+					//res += kS * light.color*pow(dotSpec, shine);
 				}
 
 			}
 		}
-		res = res + kA;
+		res = res + kD*0.2;
 
 		// SoftLights
 		for (std::vector<SoftLight>::const_iterator it = SoftLights.begin(); it != SoftLights.end(); it++){
@@ -308,7 +323,6 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 				res = res + (dot + 0.2)*kD*shadow;
 			}
 
-
 		}
 
 		//Reflection
@@ -316,7 +330,7 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 			N.normalize();
 			Vec3Df r = dir - 2 * (Vec3Df::dotProduct(N, dir)*N);
 			depth++;
-			res += shine/1000 * performRayTracing(hit.point, r + hit.point, depth);
+			res += shine / 1000 * performRayTracing(hit.point, r + hit.point, depth);
 			//std::cout << " Reflection: " << shine * kS* performRayTracing(hit.point, r + hit.point, depth);
 		}
 
@@ -343,8 +357,10 @@ void yourDebugDraw()
 	glColor3f(1,1,1);
 	glPointSize(10);
 	glBegin(GL_POINTS);
-	for (int i=0;i<MyLightPositions.size();++i)
-		glVertex3fv(MyLightPositions[i].pointer());
+	for (int i = 0; i<Lights.size(); ++i)
+		glVertex3fv(Lights[i].position.pointer());
+	for (int i = 0; i<SoftLights.size(); ++i)
+		glVertex3fv(SoftLights[i].position.pointer());
 	glEnd();
 	glPopAttrib();//restore all GL attributes
 	//The Attrib commands maintain the state. 
@@ -429,6 +445,18 @@ void yourKeyboardFunc(char key, int x, int y, const Vec3Df & rayOrigin, const Ve
 
 	case 'O':
 		SoftLights.push_back(SoftLight(rayOrigin, 0.5));
+		break;
+		//add/update a light based on the camera position.
+	case 'L':
+		Lights.push_back(Light(rayOrigin, Vec3Df(1, 1, 1)));
+		break;
+	case 'l':
+		if (Lights.size() != 0){
+			Lights[Lights.size() - 1] = Light(rayOrigin, Vec3Df(1, 1, 1));
+		}
+		else{
+			Lights.push_back(Light(rayOrigin, Vec3Df(1, 1, 1)));
+		}
 		break;
 	}
 }

@@ -17,15 +17,12 @@
 //It is enough to take a look at the function "drawFrame",
 //in case you want to provide your own different drawing functions
 
-
-
 Vec3Df MyCameraPosition;
 
 //MyLightPositions stores all the light positions to use
 //for the ray tracing. Please notice, the light that is 
 //used for the real-time rendering is NOT one of these, 
 //but following the camera instead.
-std::vector<Vec3Df> MyLightPositions;
 std::vector<Triangle> Triangles;
 std::vector<unsigned int> triangleMaterials;
 std::vector<Material> materials;
@@ -38,7 +35,7 @@ const unsigned int WindowSize_X = 200;  // resolution X
 const unsigned int WindowSize_Y = 200;  // resolution Y
 
 const int threads = 8;
-const int sampleSize = 4;
+const int sampleSize = 16;
 
 
 Image result(WindowSize_X, WindowSize_Y);
@@ -247,18 +244,7 @@ void keyboard(unsigned char key, int x, int y)
 	fflush(stdout);
 	switch (key)
 	{
-		//add/update a light based on the camera position.
-	case 'L':
-		MyLightPositions.push_back(getCameraPosition());
-		break;
-	case 'l':
-		if (MyLightPositions.size() != 0){
-			MyLightPositions[MyLightPositions.size() - 1] = getCameraPosition();
-		}
-		else{
-			MyLightPositions.push_back(getCameraPosition());
-		}
-		break;
+
 	case 'r':
 	{
 		//Pressing r will launch the raytracing.

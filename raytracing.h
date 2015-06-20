@@ -9,7 +9,6 @@
 //In principle, you can do the entire project ONLY by working in these two files
 
 extern Mesh MyMesh; //Main mesh
-extern std::vector<Vec3Df> MyLightPositions;
 extern Vec3Df MyCameraPosition; //currCamera
 extern const int sampleSize; //currCamera
 extern const unsigned int WindowSize_X;//window resolution width
