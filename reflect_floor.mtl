@@ -1,0 +1,12 @@
+# Blender MTL File: 'reflect_floor.blend'
+# Material Count: 1
+
+newmtl Material.001
+Ns 1000
+Ka 0.000000 0.000000 0.000000
+Kd 0.317821 0.481243 0.640000
+Ks 1 1 1
+Ni 1.000000
+Ns 500
+d  1.000000
+illum 3

@@ -31,11 +31,12 @@ std::vector<Vertex> vertices;
 //Main mesh 
 Mesh MyMesh;
 
-const unsigned int WindowSize_X = 200;  // resolution X
-const unsigned int WindowSize_Y = 200;  // resolution Y
+const unsigned int WindowSize_X = 800;  // resolution X
+const unsigned int WindowSize_Y = 800;  // resolution Y
 
 const int threads = 8;
 const int sampleSize = 16;
+int depth = 2;
 
 std::clock_t start;
 
@@ -90,7 +91,7 @@ int main(int argc, char** argv)
 	//initialize viewpoint
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
-	glTranslatef(0, 0, -4);
+	glTranslatef(0, -1, -4);
 	tbInitTransform();     // This is for the trackball, please ignore
 	tbHelp();             // idem
 	MyCameraPosition = getCameraPosition();
@@ -222,7 +223,6 @@ void threadRayTrace(int i){
 
 
 			//launch raytracing for the given ray.
-			int depth = 0;
 			Vec3Df rgb = performRayTracing(origin, dest, depth);
 			//store the result in an image 
 			buffer[y][x] = rgb;
