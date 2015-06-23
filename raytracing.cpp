@@ -53,12 +53,27 @@ void init()
 	MyMesh.computeVertexNormals();
 
 	// Red reflective sphere
-	Spheres.push_back(Sphere(Vec3Df(2,1,0),1));
+	Spheres.push_back(Sphere(Vec3Df(2.5, 0.5, 1), 0.5));
 	Material SphereMat = Material();
 	SphereMat.set_Kd(0.7, 0.2, 0.2);
 	SphereMat.set_illum(3);
 	SphereMat.set_Ns(250);
 	sphereMaterials.push_back(SphereMat);
+
+	// Blue non reflective sphere
+	Spheres.push_back(Sphere(Vec3Df(1.5, 1, 0), 1));
+	Material SphereMat1 = Material();
+	SphereMat1.set_Kd(0.2, 0.2, 0.7);
+	SphereMat1.set_illum(2);
+	sphereMaterials.push_back(SphereMat1);
+
+	// green reflective sphere
+	Spheres.push_back(Sphere(Vec3Df(0.75, 0.5, 1.5), 0.5));
+	Material SphereMat2 = Material();
+	SphereMat2.set_Kd(0.2, 0.7, 0.2);
+	SphereMat2.set_illum(3);
+	SphereMat2.set_Ns(750);
+	sphereMaterials.push_back(SphereMat2);
 
 	//one first move: initialize the first light source
 	//at least ONE light source has to be in the scene!!!
@@ -322,8 +337,11 @@ class SoftLight
 {
 public:
 	SoftLight();
-	SoftLight(Vec3Df pos, Vec3Df dest, double radius);
+	SoftLight(Vec3Df pos, Vec3Df dest, Vec3Df color, double radius);
 	Vec3Df position;
+	Vec3Df color;
+	float size;
+
 	float visibility(Vec3Df point){
 
 		totalHits = 0;
@@ -351,17 +369,17 @@ private:
 	Vec3Df x;
 	Vec3Df y;
 	int totalHits;
-	float size;
 };
 
 SoftLight::SoftLight()
 {
 }
 
-SoftLight::SoftLight(Vec3Df pos, Vec3Df dest, double s)
+SoftLight::SoftLight(Vec3Df pos, Vec3Df dest,Vec3Df col, double s)
 {
 	position = pos;
 	size = s;
+	color = col;
 	Vec3Df dir = dest - pos;
 	dir.normalize();
 	x = Vec3Df(-dir[1],dir[0], 0);
@@ -424,7 +442,7 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 
 				if (shadow == false){
 
-					res += dot*kD;
+					res += dot*kD*light.color;
 
 					Vec3Df viewDir = origin - dest;
 					Vec3Df reflectDir = viewDir - 2 * (Vec3Df::dotProduct(N, dir)*N);
@@ -453,7 +471,7 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 
 				if (shadow > 0){
 
-					res += dot*kD*shadow;
+					res += dot*kD*shadow*light.color;
 
 					Vec3Df viewDir = origin - dest;
 					Vec3Df reflectDir = viewDir - 2 * (Vec3Df::dotProduct(N, dir)*N);
@@ -577,30 +595,67 @@ void yourKeyboardFunc(char key, int x, int y, const Vec3Df & rayOrigin, const Ve
 	//std::cout << material.illum() << std::endl;
 	//std::cout << material.Ns() << std::endl;
 	//std::cout << hit.distance << std::endl;
+	float size;
+	float red;
+	float green;
+	float blue;
 	switch (key)
 	{
 	case 'o':
+
+		std::cout << "size: ";
+		std::cin >> size;
+		std::cout << "red: ";
+		std::cin >> red;
+		std::cout << "green: ";
+		std::cin >> green;
+		std::cout << "blue: ";
+		std::cin >> blue;
+
 		if (SoftLights.size() != 0){
-			SoftLights[SoftLights.size() - 1] = SoftLight(rayOrigin, rayDestination, 0.2);
+			SoftLights[SoftLights.size() - 1] = SoftLight(rayOrigin, rayDestination,Vec3Df(red,green,blue),size );
 		}
 		else{
-			SoftLights.push_back(SoftLight(rayOrigin, rayDestination, 0.2));
+			SoftLights.push_back(SoftLight(rayOrigin, rayDestination, Vec3Df(red, green, blue), size));
 		}
 		break;
 
 	case 'O':
-		SoftLights.push_back(SoftLight(rayOrigin, rayDestination, 0.2));
+
+		std::cout << "size: ";
+		std::cin >> size;
+		std::cout << "red: ";
+		std::cin >> red;
+		std::cout << "green: ";
+		std::cin >> green;
+		std::cout << "blue: ";
+		std::cin >> blue;
+		SoftLights.push_back(SoftLight(rayOrigin, rayDestination, Vec3Df(red, green, blue), size));
 		break;
 		//add/update a light based on the camera position.
 	case 'L':
-		Lights.push_back(Light(rayOrigin, Vec3Df(1, 1, 1)));
+
+		std::cout << "red: ";
+		std::cin >> red;
+		std::cout << "green: ";
+		std::cin >> green;
+		std::cout << "blue: ";
+		std::cin >> blue;
+		Lights.push_back(Light(rayOrigin, Vec3Df(red, green, blue)));
 		break;
 	case 'l':
+
+		std::cout << "red: ";
+		std::cin >> red;
+		std::cout << "green: ";
+		std::cin >> green;
+		std::cout << "blue: ";
+		std::cin >> blue;
 		if (Lights.size() != 0){
-			Lights[Lights.size() - 1] = Light(rayOrigin, Vec3Df(1, 1, 1));
+			Lights[Lights.size() - 1] = Light(rayOrigin, Vec3Df(red, green, blue));
 		}
 		else{
-			Lights.push_back(Light(rayOrigin, Vec3Df(1, 1, 1)));
+			Lights.push_back(Light(rayOrigin, Vec3Df(red, green, blue)));
 		}
 		break;
 	}
