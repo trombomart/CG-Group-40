@@ -47,7 +47,7 @@ void init()
 	//otherwise the application will not load properly
 	//MyMesh.loadMesh("../dodgeColorTest.obj", true);
 	//MyMesh.loadMesh("../showcase.obj", true);
-	MyMesh.loadMesh("../objects/cube_floor_reflect.obj", true);
+	MyMesh.loadMesh("../objects/Mountain.obj", true);
 	//MyMesh.loadMesh("../reflect_floor.obj", true);
 
 	MyMesh.computeVertexNormals();
