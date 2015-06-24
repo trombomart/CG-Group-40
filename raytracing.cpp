@@ -47,8 +47,8 @@ void init()
 	//otherwise the application will not load properly
 	//MyMesh.loadMesh("../dodgeColorTest.obj", true);
 	//MyMesh.loadMesh("../showcase.obj", true);
-	//MyMesh.loadMesh("../objects/Mountain.obj", true);
-	MyMesh.loadMesh("../objects/reflect_floor.obj", true);
+	MyMesh.loadMesh("../objects/mountain_final.obj", true);
+	//MyMesh.loadMesh("../objects/reflect_floor.obj", true);
 
 	MyMesh.computeVertexNormals();
 
@@ -71,10 +71,10 @@ void init()
 	sphereMaterials.push_back(SphereMat1);
 
 	// green reflective sphere
-	Spheres.push_back(Sphere(Vec3Df(0.75, 0.5, 1.5), 0.5));
+	Spheres.push_back(Sphere(Vec3Df(4.6, -0.13,- 4.5), 0.5));
 	Material SphereMat2 = Material();
 	SphereMat2.set_Kd(0.2, 0.7, 0.2);
-	SphereMat2.set_Ks(0.75, 0.75, 0.75);
+	SphereMat2.set_Ks(0.25, 0.25, 0.25);
 	SphereMat2.set_illum(3);
 	SphereMat2.set_Ns(750);
 	sphereMaterials.push_back(SphereMat2);
@@ -524,7 +524,8 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth, int 
 		return res;
 	}
 	else{
-		return Vec3Df(0, 0, 0);
+		// Sky (Arjans nice blue)
+		return Vec3Df(0, 0.66, 1);
 	}
 }
 
