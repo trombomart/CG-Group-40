@@ -47,7 +47,7 @@ void init()
 	//otherwise the application will not load properly
 	//MyMesh.loadMesh("../dodgeColorTest.obj", true);
 	//MyMesh.loadMesh("../showcase.obj", true);
-	MyMesh.loadMesh("../cube_floor_reflect.obj", true);
+	MyMesh.loadMesh("../objects/cube_floor_reflect.obj", true);
 	//MyMesh.loadMesh("../reflect_floor.obj", true);
 
 	MyMesh.computeVertexNormals();
@@ -659,11 +659,19 @@ void yourKeyboardFunc(char key, int x, int y, const Vec3Df & rayOrigin, const Ve
 		break;
 
 	case 12:
-		//std::cout << "Number of Lights: " << Lights.size << std::endl;
+		int size = Lights.size();
+		if (size == 0) break;
+		std::cout << "Number of Lights: " << size << std::endl;
 		std::cout << "Delete index: ";
 
 		std::cin >> index;
 
+		if (index < size && index > 0){
+			Lights.erase(Lights.begin() + 1);
+		}
+		else{
+			std::cout << "Please insert a valid index ";
+		}
 		break;
 	}
 }

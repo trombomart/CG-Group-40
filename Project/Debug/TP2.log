@@ -1,4 +1,4 @@
-﻿Build started 24-6-2015 12:29:42.
+﻿Build started 24-6-2015 12:53:28.
      1>Project "C:\Users\Jasper\Downloads\TP2Win\Exercise 3 (Introduction GLUT)\TP2\Project\TP2.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\MSvs\VC\bin\CL.exe /c /I"C:\Users\Jasper\Downloads\TP2Win\Exercise 3 (Introduction GLUT)\TP2\Project\include\\" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt ..\raytracing.cpp
@@ -25,4 +25,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.14
+Time Elapsed 00:00:01.48
