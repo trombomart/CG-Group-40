@@ -349,7 +349,22 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth
 
 		//Refraction
 		if (Tr < 1.0 & depthrefr < 4){
-			Vec3Df t = ((1 / 1)*(dir - (Vec3Df::dotProduct(dir, N)*N))) - N*(sqrt(1 - (1*1*(1 - (Vec3Df::dotProduct(dir, N)*Vec3Df::dotProduct(dir, N))) / (1*1))));
+			N.normalize();
+			float cos = Vec3Df::dotProduct(dir, N);
+			Vec3Df W;
+			float n;
+			if (cos < 0){
+				W = Vec3Df(0, 0, 0) - N;
+				n = Ni / 1.0f;
+			}
+			else{
+				cos = -cos;
+				W = N;
+				n = 1.0f / Ni;
+			}
+			W.normalize();
+			dir.normalize();
+			Vec3Df t = ((1 / 1)*(dir - (cos*W))) - W*(sqrt(1 - (1*1*(1 - (cos*cos)) / (1*1))));
 			depthrefr++;
 			formerNi = Ni;
 			//std::cout << " Reflection: " << formerNi * performRayTracing(hit.point, t + hit.point, depth, depthrefr, formerNi);
