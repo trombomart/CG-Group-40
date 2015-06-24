@@ -1,0 +1,9 @@
+Intersection: Jasper, Martin, Maikel, Luke, Julian
+Phong shading: Jasper
+Shadow: Jasper, Job
+Reflection: Jasper, Luke, Dylan, Arjan
+Multithreading: Jasper, Luke
+Ambient, diffuse and specular: Martin
+Console functionality: Arjan, Jasper
+Light Management: Jasper, Bart, Martin
+3D model: Julian, Maikel
