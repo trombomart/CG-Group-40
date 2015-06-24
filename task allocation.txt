@@ -1,3 +1,13 @@
+Luke Prananta 		4288386
+Julian Gommers		4368622
+Maikel Kerkhof		4297806
+Dylan Straub		4340191
+Jasper van Esveld	4372581
+Bart Ziengs		4391799
+Job van Ellen		4364066
+Arjan van Schendel	4366212
+Martin Koster		4371011
+
 Intersection: Jasper, Martin, Maikel, Luke, Julian
 Phong shading: Jasper
 Shadow: Jasper, Job
