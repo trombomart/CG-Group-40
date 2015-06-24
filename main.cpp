@@ -231,7 +231,10 @@ void threadRayTrace(int i){
 			if ((calculatedPixels % ((WindowSize_X*WindowSize_Y) / 100)) == 0){
 				int progress = ((float)calculatedPixels / (float)(WindowSize_X*WindowSize_Y)) * 100;
 				int time = (((std::clock() - start) / progress)*(100 - progress))/1000;
-				std::cout << "Progress: " << progress << "% Time remaining: " << time << " seconds";
+				int second = time;
+				int minute = second / 60;
+				int hour = minute / 60;
+				std::cout << "Progress: " << progress << "% Time remaining: " << int(hour) << " hours, " << int(minute % 60) << " minutes and " << int(second % 60) << " seconds.";
 				std::cout.flush();
 				std::cout << "\r";
 			}
@@ -290,7 +293,10 @@ void keyboard(unsigned char key, int x, int y)
 
 
 		duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-		std::cout << std::endl << "Total time: " << duration << " seconds" << '\n';
+		int second = duration;
+		int minute = second / 60;
+		int hour = minute / 60;
+		std::cout << std::endl << "Total time: " << hour << " hours, "<< minute << " minutes and " << second << " seconds." << '\n';
 		break;
 	}
 	case 27:     // touche ESC
