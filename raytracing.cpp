@@ -47,7 +47,7 @@ void init()
 	//otherwise the application will not load properly
 	//MyMesh.loadMesh("../dodgeColorTest.obj", true);
 	//MyMesh.loadMesh("../showcase.obj", true);
-	MyMesh.loadMesh("../objects/cube_floor_reflect.obj", true);
+	MyMesh.loadMesh("../objects/Mountain.obj", true);
 	//MyMesh.loadMesh("../reflect_floor.obj", true);
 
 	MyMesh.computeVertexNormals();
@@ -56,6 +56,7 @@ void init()
 	Spheres.push_back(Sphere(Vec3Df(2.5, 0.5, 1), 0.5));
 	Material SphereMat = Material();
 	SphereMat.set_Kd(0.7, 0.2, 0.2);
+	SphereMat.set_Ks(0.25, 0.25, 0.25);
 	SphereMat.set_illum(3);
 	SphereMat.set_Ns(250);
 	sphereMaterials.push_back(SphereMat);
@@ -64,6 +65,8 @@ void init()
 	Spheres.push_back(Sphere(Vec3Df(1.5, 1, 0), 1));
 	Material SphereMat1 = Material();
 	SphereMat1.set_Kd(0.2, 0.2, 0.7);
+	SphereMat1.set_Ks(0, 0, 0);
+	SphereMat1.set_Ns(400);
 	SphereMat1.set_illum(2);
 	sphereMaterials.push_back(SphereMat1);
 
@@ -71,6 +74,7 @@ void init()
 	Spheres.push_back(Sphere(Vec3Df(0.75, 0.5, 1.5), 0.5));
 	Material SphereMat2 = Material();
 	SphereMat2.set_Kd(0.2, 0.7, 0.2);
+	SphereMat.set_Ks(0.75, 0.75, 0.75);
 	SphereMat2.set_illum(3);
 	SphereMat2.set_Ns(750);
 	sphereMaterials.push_back(SphereMat2);
@@ -436,21 +440,22 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth
 
 			float dot = Vec3Df::dotProduct(l, N);
 
-
+			bool shadow = !visible(hit.point, light.position);
 			if (dot > 0.0) {
-				bool shadow = !visible(hit.point, light.position);
 
 				if (shadow == false){
 					res += dot*kD*light.color;
 
-					Vec3Df viewDir = origin - dest;
-					Vec3Df reflectDir = viewDir - 2 * (Vec3Df::dotProduct(N, dir)*N);
-					viewDir.normalize();
+					//Vec3Df viewDir = origin - dest;
+					Vec3Df reflectDir = l - 2 * (Vec3Df::dotProduct(N, l)*N);
+					//viewDir.normalize();
 					reflectDir.normalize();
-					float dotSpec = Vec3Df::dotProduct(viewDir, reflectDir);\
-					//res += light.color*kS*pow(dotSpec, shine);
+					float dotSpec = Vec3Df::dotProduct(dir, reflectDir);
+					if (dotSpec > 0.0)
+						res += light.color*kS*pow(dotSpec, shine);
+					else
+						res += light.color*kS*pow(0.0, shine);
 				}
-
 			}
 		}
 		res = res + kD*0.2;
@@ -464,24 +469,24 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth
 
 			float dot = Vec3Df::dotProduct(l, N);
 
-
+			float shadow = light.visibility(hit.point);
 			if (dot > 0.0) {
-				float shadow = light.visibility(hit.point);
 
 				if (shadow > 0){
 
 					res += dot*kD*shadow*light.color;
 
 					Vec3Df viewDir = origin - dest;
-					Vec3Df reflectDir = viewDir - 2 * (Vec3Df::dotProduct(N, dir)*N);
+					Vec3Df reflectDir = l - 2 * (Vec3Df::dotProduct(N, l)*N);
 					viewDir.normalize();
 					reflectDir.normalize();
-					float dotSpec = Vec3Df::dotProduct(viewDir, reflectDir);
-					//res += kS*pow(dotSpec, shine);
+					float dotSpec = Vec3Df::dotProduct(dir, reflectDir);
+					if (dotSpec > 0.0)
+						res += light.color*kS*pow(dotSpec, shine);
+					else
+						res += light.color*kS*pow(0.0, shine);
 				}
-
 			}
-
 		}
 
 		//Reflection

@@ -1,31 +1,56 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 ﻿Build started 24-6-2015 12:53:28.
      1>Project "C:\Users\Jasper\Downloads\TP2Win\Exercise 3 (Introduction GLUT)\TP2\Project\TP2.vcxproj" on node 2 (Build target(s)).
+=======
+﻿Build started 24/06/2015 13:55:45.
+     1>Project "C:\Users\Maikel\git\CG-Group-40\Project\TP2.vcxproj" on node 2 (Build target(s)).
+>>>>>>> 23b78e6eab74cb5133ac48bcd061391403e3742d
      1>ClCompile:
-         C:\Program Files (x86)\MSvs\VC\bin\CL.exe /c /I"C:\Users\Jasper\Downloads\TP2Win\Exercise 3 (Introduction GLUT)\TP2\Project\include\\" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt ..\raytracing.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\Maikel\git\CG-Group-40\Project\include\\" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt ..\main.cpp ..\mesh.cpp ..\raytracing.cpp
          raytracing.cpp
-     1>c:\users\jasper\downloads\tp2win\exercise 3 (introduction glut)\tp2\raytracing.cpp(58): warning C4305: 'argument' : truncation from 'double' to 'float'
-     1>c:\users\jasper\downloads\tp2win\exercise 3 (introduction glut)\tp2\raytracing.cpp(66): warning C4305: 'argument' : truncation from 'double' to 'float'
-     1>c:\users\jasper\downloads\tp2win\exercise 3 (introduction glut)\tp2\raytracing.cpp(73): warning C4305: 'argument' : truncation from 'double' to 'float'
-     1>c:\users\jasper\downloads\tp2win\exercise 3 (introduction glut)\tp2\raytracing.cpp(206): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\jasper\downloads\tp2win\exercise 3 (introduction glut)\tp2\raytracing.cpp(210): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\jasper\downloads\tp2win\exercise 3 (introduction glut)\tp2\raytracing.cpp(354): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
-     1>c:\users\jasper\downloads\tp2win\exercise 3 (introduction glut)\tp2\raytracing.cpp(355): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\jasper\downloads\tp2win\exercise 3 (introduction glut)\tp2\raytracing.cpp(381): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\jasper\downloads\tp2win\exercise 3 (introduction glut)\tp2\raytracing.cpp(455): warning C4305: 'argument' : truncation from 'double' to 'float'
-     1>c:\users\jasper\downloads\tp2win\exercise 3 (introduction glut)\tp2\raytracing.cpp(487): warning C4554: '&' : check operator precedence for possible error; use parentheses to clarify precedence
-     1>c:\users\jasper\downloads\tp2win\exercise 3 (introduction glut)\tp2\raytracing.cpp(517): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\jasper\downloads\tp2win\exercise 3 (introduction glut)\tp2\raytracing.cpp(519): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\jasper\downloads\tp2win\exercise 3 (introduction glut)\tp2\raytracing.cpp(544): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\maikel\git\cg-group-40\raytracing.cpp(58): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\maikel\git\cg-group-40\raytracing.cpp(66): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\maikel\git\cg-group-40\raytracing.cpp(73): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\maikel\git\cg-group-40\raytracing.cpp(206): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\maikel\git\cg-group-40\raytracing.cpp(210): warning C4244: 'initializing' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\maikel\git\cg-group-40\raytracing.cpp(354): warning C4244: 'argument' : conversion from 'int' to 'float', possible loss of data
+     1>c:\users\maikel\git\cg-group-40\raytracing.cpp(355): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\maikel\git\cg-group-40\raytracing.cpp(381): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\maikel\git\cg-group-40\raytracing.cpp(456): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\maikel\git\cg-group-40\raytracing.cpp(459): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\maikel\git\cg-group-40\raytracing.cpp(491): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\maikel\git\cg-group-40\raytracing.cpp(496): warning C4554: '&' : check operator precedence for possible error; use parentheses to clarify precedence
+     1>c:\users\maikel\git\cg-group-40\raytracing.cpp(526): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\maikel\git\cg-group-40\raytracing.cpp(528): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\maikel\git\cg-group-40\raytracing.cpp(553): warning C4018: '<' : signed/unsigned mismatch
+         mesh.cpp
+     1>c:\users\maikel\git\cg-group-40\mesh.cpp(165): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\maikel\git\cg-group-40\mesh.cpp(160): warning C4101: 'mtlfile' : unreferenced local variable
+         main.cpp
+     1>c:\users\maikel\git\cg-group-40\traqueboule.h(25): warning C4305: 'initializing' : truncation from 'double' to 'const float'
+     1>c:\users\maikel\git\cg-group-40\traqueboule.h(129): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>c:\users\maikel\git\cg-group-40\traqueboule.h(152): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>c:\users\maikel\git\cg-group-40\traqueboule.h(184): warning C4244: 'argument' : conversion from 'double' to 'GLfloat', possible loss of data
+     1>c:\users\maikel\git\cg-group-40\traqueboule.h(220): warning C4244: '=' : conversion from 'GLdouble' to 'float', possible loss of data
+     1>c:\users\maikel\git\cg-group-40\traqueboule.h(221): warning C4244: '=' : conversion from 'GLdouble' to 'float', possible loss of data
+     1>c:\users\maikel\git\cg-group-40\traqueboule.h(222): warning C4244: '=' : conversion from 'GLdouble' to 'float', possible loss of data
+     1>c:\users\maikel\git\cg-group-40\traqueboule.h(240): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\maikel\git\cg-group-40\main.cpp(13): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+     1>c:\users\maikel\git\cg-group-40\main.cpp(210): warning C4244: 'argument' : conversion from 'time_t' to 'unsigned int', possible loss of data
+     1>c:\users\maikel\git\cg-group-40\main.cpp(231): warning C4244: 'initializing' : conversion from 'float' to 'int', possible loss of data
+         Generating Code...
        Link:
-         C:\Program Files (x86)\MSvs\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Jasper\Downloads\TP2Win\Exercise 3 (Introduction GLUT)\TP2\Project\Debug\TP2.exe" /INCREMENTAL /NOLOGO freeglut.lib glew32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Jasper\Downloads\TP2Win\Exercise 3 (Introduction GLUT)\TP2\Project\Debug\TP2.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Jasper\Downloads\TP2Win\Exercise 3 (Introduction GLUT)\TP2\Project\Debug\TP2.lib" /MACHINE:X86 Debug\main.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Maikel\git\CG-Group-40\Project\Debug\TP2.exe" /INCREMENTAL /NOLOGO freeglut.lib glew32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Maikel\git\CG-Group-40\Project\Debug\TP2.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Maikel\git\CG-Group-40\Project\Debug\TP2.lib" /MACHINE:X86 Debug\main.obj
          Debug\mesh.obj
          Debug\raytracing.obj
-         TP2.vcxproj -> C:\Users\Jasper\Downloads\TP2Win\Exercise 3 (Introduction GLUT)\TP2\Project\Debug\TP2.exe
-     1>Done Building Project "C:\Users\Jasper\Downloads\TP2Win\Exercise 3 (Introduction GLUT)\TP2\Project\TP2.vcxproj" (Build target(s)).
+         LINK : C:\Users\Maikel\git\CG-Group-40\Project\Debug\TP2.exe not found or not built by the last incremental link; performing full link
+         TP2.vcxproj -> C:\Users\Maikel\git\CG-Group-40\Project\Debug\TP2.exe
+     1>Done Building Project "C:\Users\Maikel\git\CG-Group-40\Project\TP2.vcxproj" (Build target(s)).
 
 Build succeeded.
 
+<<<<<<< HEAD
 Time Elapsed 00:00:01.48
 =======
 ﻿Build started 24-6-2015 14:16:46.
@@ -56,3 +81,6 @@ Build succeeded.
 
 Time Elapsed 00:00:01.06
 >>>>>>> refraction
+=======
+Time Elapsed 00:00:03.84
+>>>>>>> 23b78e6eab74cb5133ac48bcd061391403e3742d
