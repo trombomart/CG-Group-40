@@ -435,21 +435,25 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 
 			float dot = Vec3Df::dotProduct(l, N);
 
-
+			bool shadow = !visible(hit.point, light.position);
 			if (dot > 0.0) {
-				bool shadow = !visible(hit.point, light.position);
 
 				if (shadow == false){
 					res += dot*kD*light.color;
-
-					Vec3Df viewDir = origin - dest;
-					Vec3Df reflectDir = viewDir - 2 * (Vec3Df::dotProduct(N, dir)*N);
-					viewDir.normalize();
-					reflectDir.normalize();
-					float dotSpec = Vec3Df::dotProduct(viewDir, reflectDir);\
-					//res += light.color*kS*pow(dotSpec, shine);
 				}
 
+			}
+			if (shadow == false){
+
+				//Vec3Df viewDir = origin - dest;
+				Vec3Df reflectDir = l - 2 * (Vec3Df::dotProduct(N, l)*N);
+				//viewDir.normalize();
+				reflectDir.normalize();
+				float dotSpec = Vec3Df::dotProduct(dir, reflectDir);
+				if (dotSpec > 0.0)
+					res += light.color*kS*pow(dotSpec, shine);
+				else
+					res += light.color*kS*pow(0.0, shine);
 			}
 		}
 		res = res + kD*0.2;
@@ -463,24 +467,29 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 
 			float dot = Vec3Df::dotProduct(l, N);
 
-
+			float shadow = light.visibility(hit.point);
 			if (dot > 0.0) {
-				float shadow = light.visibility(hit.point);
 
 				if (shadow > 0){
 
 					res += dot*kD*shadow*light.color;
 
-					Vec3Df viewDir = origin - dest;
-					Vec3Df reflectDir = viewDir - 2 * (Vec3Df::dotProduct(N, dir)*N);
-					viewDir.normalize();
-					reflectDir.normalize();
-					float dotSpec = Vec3Df::dotProduct(viewDir, reflectDir);
-					//res += kS*pow(dotSpec, shine);
 				}
 
 			}
+			if (shadow > 0){
 
+
+				Vec3Df viewDir = origin - dest;
+				Vec3Df reflectDir = l - 2 * (Vec3Df::dotProduct(N, l)*N);
+				viewDir.normalize();
+				reflectDir.normalize();
+				float dotSpec = Vec3Df::dotProduct(dir, reflectDir);
+				if (dotSpec > 0.0)
+					res += light.color*kS*pow(dotSpec, shine);
+				else
+					res += light.color*kS*pow(0.0, shine);
+			}
 		}
 
 		//Reflection
