@@ -254,8 +254,8 @@ std::vector<Light> Lights;
 //return the color of your pixel.
 Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth, int & depthrefr)
 {
-
-
+	bool invert = false;
+	if (depthrefr % 2 == 1) invert = true;
 	hitResult hit = closestHit(origin, dest);
 	Triangle& triangle = hit.triangle;
 	
@@ -347,27 +347,27 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth
 		}
 
 		//Refraction
-		if (Tr < 1.0 & depthrefr < 4){
+		if (illum == 4 && Tr < 1.0 & depthrefr < 4){
 			float cos = Vec3Df::dotProduct(dir, N);
 			Vec3Df W;
 			float n,n1,n2;
 			if (cos < 0){
 				W = Vec3Df(0, 0, 0) - N;
-				n = Ni / 1.0f;
-				n1 = Ni;
+				n = 1.2 / 1.0f;
+				n1 = 1.2;
 				n2 = 1.0f;
 			}
 			else{
 				cos = -cos;
 				W = N;
-				n = 1.0f / Ni;
+				n = 1.0f / 1.2;
 				n1 = 1.0f;
-				n2 = Ni;
+				n2 = 1.2;
 			}
 			W.normalize();
 			Vec3Df t = n*(dir - (cos*W)) - W*(sqrt(1 - (n1*n1*(1 - (cos*cos)) / (n2*n2))));
 			depthrefr++;
-			res += performRayTracing(hit.point, t + hit.point, depth, depthrefr);
+			res += performRayTracing(hit.point, t + hit.point + dir*Vec3Df(0.01,0.01,0.01), depth, depthrefr);
 		}
 
 		return res;

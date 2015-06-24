@@ -1,4 +1,4 @@
-﻿Build started 24-6-2015 13:59:34.
+﻿Build started 24-6-2015 14:16:46.
      1>Project "C:\Users\Denver\Documents\CG-Group-40\Project\TP2.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
          C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\Denver\Documents\CG-Group-40\Project\include\\" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt ..\raytracing.cpp
@@ -8,6 +8,11 @@
      1>c:\users\denver\documents\cg-group-40\raytracing.cpp(310): warning C4305: 'argument' : truncation from 'double' to 'float'
      1>c:\users\denver\documents\cg-group-40\raytracing.cpp(342): warning C4554: '&' : check operator precedence for possible error; use parentheses to clarify precedence
      1>c:\users\denver\documents\cg-group-40\raytracing.cpp(350): warning C4554: '&' : check operator precedence for possible error; use parentheses to clarify precedence
+     1>c:\users\denver\documents\cg-group-40\raytracing.cpp(356): warning C4305: '=' : truncation from 'double' to 'float'
+     1>c:\users\denver\documents\cg-group-40\raytracing.cpp(357): warning C4305: '=' : truncation from 'double' to 'float'
+     1>c:\users\denver\documents\cg-group-40\raytracing.cpp(363): warning C4305: '=' : truncation from 'double' to 'float'
+     1>c:\users\denver\documents\cg-group-40\raytracing.cpp(365): warning C4305: '=' : truncation from 'double' to 'float'
+     1>c:\users\denver\documents\cg-group-40\raytracing.cpp(370): warning C4305: 'argument' : truncation from 'double' to 'float'
      1>c:\users\denver\documents\cg-group-40\raytracing.cpp(396): warning C4018: '<' : signed/unsigned mismatch
      1>c:\users\denver\documents\cg-group-40\raytracing.cpp(398): warning C4018: '<' : signed/unsigned mismatch
        Link:
@@ -19,4 +24,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:01.14
+Time Elapsed 00:00:01.06
