@@ -393,10 +393,10 @@ std::vector<SoftLight> SoftLights;
 
 
 //return the color of your pixel.
-Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
+Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth, int & depthrefr)
 {
-
-
+	bool invert = false;
+	if (depthrefr % 2 == 1) invert = true;
 	hitResult hit = closestHit(origin, dest);
 	Triangle& triangle = hit.triangle;
 
@@ -418,6 +418,7 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 		float shine = material.Ns();
 
 		//Transparancy
+		float Tr = material.Tr();
 		float Ni = material.Ni();
 		float d = material.Tr();
 
@@ -487,8 +488,32 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 		if (illum == 3 & depth > 0 & shine > 0.0){
 			Vec3Df r = dir - 2 * (Vec3Df::dotProduct(N, dir)*N);
 			depth--;
-			res += shine / 1000 * performRayTracing(hit.point, r + hit.point, depth);
+			res += shine / 1000 * performRayTracing(hit.point, r + hit.point, depth, depthrefr);
 			//std::cout << " Reflection: " << shine * kS* performRayTracing(hit.point, r + hit.point, depth);
+		}
+
+		//Refraction
+		if (illum == 4 && Tr < 1.0 & depthrefr < 4){
+			float cos = Vec3Df::dotProduct(dir, N);
+			Vec3Df W;
+			float n,n1,n2;
+			if (cos < 0){
+				W = Vec3Df(0, 0, 0) - N;
+				n = 1.2 / 1.0f;
+				n1 = 1.2;
+				n2 = 1.0f;
+			}
+			else{
+				cos = -cos;
+				W = N;
+				n = 1.0f / 1.2;
+				n1 = 1.0f;
+				n2 = 1.2;
+			}
+			W.normalize();
+			Vec3Df t = n*(dir - (cos*W)) - W*(sqrt(1 - (n1*n1*(1 - (cos*cos)) / (n2*n2))));
+			depthrefr++;
+			res += performRayTracing(hit.point, t + hit.point + dir*Vec3Df(0.01,0.01,0.01), depth, depthrefr);
 		}
 
 		return res;
@@ -587,9 +612,10 @@ void yourKeyboardFunc(char key, int x, int y, const Vec3Df & rayOrigin, const Ve
 	hitResult hit = closestHit(rayOrigin, rayDestination);
 	Vec3Df dir = rayDestination - rayOrigin;
 	int depth = 0;
+	int depthrefr = 0;
 	dir.normalize();
 	testRayDestination = rayOrigin + dir * hit.distance;
-	Vec3Df color = performRayTracing(rayOrigin, rayDestination, depth);
+	Vec3Df color = performRayTracing(rayOrigin, rayDestination, depth, depthrefr);
 	//std::cout << material.illum() << std::endl;
 	//std::cout << material.Ns() << std::endl;
 	//std::cout << hit.distance << std::endl;
