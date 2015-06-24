@@ -598,6 +598,7 @@ void yourKeyboardFunc(char key, int x, int y, const Vec3Df & rayOrigin, const Ve
 	float green;
 	float blue;
 	int index;
+	int vectorSize;
 	switch (key)
 	{
 	case 'o':
@@ -659,15 +660,31 @@ void yourKeyboardFunc(char key, int x, int y, const Vec3Df & rayOrigin, const Ve
 		break;
 
 	case 12:
-		int size = Lights.size();
-		if (size == 0) break;
-		std::cout << "Number of Lights: " << size << std::endl;
+		vectorSize = Lights.size();
+		if (vectorSize == 0) break;
+		std::cout << "Number of Lights: " << vectorSize << std::endl;
 		std::cout << "Delete index: ";
 
 		std::cin >> index;
 
-		if (index < size && index > 0){
-			Lights.erase(Lights.begin() + 1);
+		if (index < vectorSize && index >= 0){
+			Lights.erase(Lights.begin() + index);
+		}
+		else{
+			std::cout << "Please insert a valid index ";
+		}
+		break;
+
+	case 15:
+		vectorSize = SoftLights.size();
+		if (vectorSize == 0) break;
+		std::cout << "Number of SoftLights: " << vectorSize << std::endl;
+		std::cout << "Delete index: ";
+
+		std::cin >> index;
+
+		if (index < vectorSize && index >= 0){
+			SoftLights.erase(SoftLights.begin() + index);
 		}
 		else{
 			std::cout << "Please insert a valid index ";
