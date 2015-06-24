@@ -401,7 +401,13 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 	Triangle& triangle = hit.triangle;
 
 	if (hit.hit){
-		Material & material = materials[triangleMaterials[hit.triangleIndex]];
+		Material material;
+		if (hit.triangleIndex != -1){
+			material = materials[triangleMaterials[hit.triangleIndex]];
+		}
+		else{
+			material = sphereMaterials[hit.sphereIndex];
+		}
 
 		Vec3Df& N = hit.normal;
 		Vec3Df kD = material.Kd();
@@ -434,20 +440,14 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 				bool shadow = !visible(hit.point, light.position);
 
 				if (shadow == false){
-					if (dot > 0.0)
-						res += dot*kD*light.color;
-					else
-						res += 0.0*kD*light.color;
+					res += dot*kD*light.color;
 
 					Vec3Df viewDir = origin - dest;
 					Vec3Df reflectDir = viewDir - 2 * (Vec3Df::dotProduct(N, dir)*N);
 					viewDir.normalize();
 					reflectDir.normalize();
-					float dotSpec = Vec3Df::dotProduct(viewDir, reflectDir);
-					if (dotSpec > 0.0)
-						res += light.color*kS*pow(dotSpec, shine);
-					else
-						res += light.color*kS*pow(0.0, shine);
+					float dotSpec = Vec3Df::dotProduct(viewDir, reflectDir);\
+					//res += light.color*kS*pow(dotSpec, shine);
 				}
 
 			}
@@ -469,20 +469,14 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 
 				if (shadow > 0){
 
-					if (dot > 0.0)
-						res += dot*kD;
-					else
-						res += 0.0*kD;
+					res += dot*kD*shadow*light.color;
 
 					Vec3Df viewDir = origin - dest;
 					Vec3Df reflectDir = viewDir - 2 * (Vec3Df::dotProduct(N, dir)*N);
 					viewDir.normalize();
 					reflectDir.normalize();
 					float dotSpec = Vec3Df::dotProduct(viewDir, reflectDir);
-					if (dotSpec > 0.0)
-						res += kS*pow(dotSpec, shine);
-					else
-						res += kS*pow(0.0, shine);
+					//res += kS*pow(dotSpec, shine);
 				}
 
 			}
@@ -490,9 +484,9 @@ Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth)
 		}
 
 		//Reflection
-		if (illum == 3 & depth < 1 & shine > 0.0){
+		if (illum == 3 & depth > 0 & shine > 0.0){
 			Vec3Df r = dir - 2 * (Vec3Df::dotProduct(N, dir)*N);
-			depth++;
+			depth--;
 			res += shine / 1000 * performRayTracing(hit.point, r + hit.point, depth);
 			//std::cout << " Reflection: " << shine * kS* performRayTracing(hit.point, r + hit.point, depth);
 		}
