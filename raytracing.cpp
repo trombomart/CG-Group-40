@@ -252,7 +252,7 @@ std::vector<Light> Lights;
 
 
 //return the color of your pixel.
-Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth, int & depthrefr, float formerNi)
+Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth, int & depthrefr)
 {
 
 
@@ -342,33 +342,32 @@ Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth
 		if (illum == 3 & depth < 1 & shine > 0.0){
 			Vec3Df r = dir - 2 * (Vec3Df::dotProduct(N, dir)*N);
 			depth++;
-			formerNi = Ni;
-			res += shine / 1000 * performRayTracing(hit.point, r + hit.point, depth, depthrefr, formerNi);
+			res += shine / 1000 * performRayTracing(hit.point, r + hit.point, depth, depthrefr);
 			//std::cout << " Reflection: " << shine * kS* performRayTracing(hit.point, r + hit.point, depth);
 		}
 
 		//Refraction
 		if (Tr < 1.0 & depthrefr < 4){
-			N.normalize();
 			float cos = Vec3Df::dotProduct(dir, N);
 			Vec3Df W;
-			float n;
+			float n,n1,n2;
 			if (cos < 0){
 				W = Vec3Df(0, 0, 0) - N;
 				n = Ni / 1.0f;
+				n1 = Ni;
+				n2 = 1.0f;
 			}
 			else{
 				cos = -cos;
 				W = N;
 				n = 1.0f / Ni;
+				n1 = 1.0f;
+				n2 = Ni;
 			}
 			W.normalize();
-			dir.normalize();
-			Vec3Df t = ((1 / 1)*(dir - (cos*W))) - W*(sqrt(1 - (1*1*(1 - (cos*cos)) / (1*1))));
+			Vec3Df t = n*(dir - (cos*W)) - W*(sqrt(1 - (n1*n1*(1 - (cos*cos)) / (n2*n2))));
 			depthrefr++;
-			formerNi = Ni;
-			//std::cout << " Reflection: " << formerNi * performRayTracing(hit.point, t + hit.point, depth, depthrefr, formerNi);
-			res += performRayTracing(hit.point, t + hit.point, depth, depthrefr, formerNi);
+			res += performRayTracing(hit.point, t + hit.point, depth, depthrefr);
 		}
 
 		return res;
@@ -464,10 +463,9 @@ void yourKeyboardFunc(char key, int x, int y, const Vec3Df & rayOrigin, const Ve
 	Vec3Df dir = rayDestination - rayOrigin;
 	int depth = 0;
 	int depthrefr = 0;
-	float formerNi = 1;
 	dir.normalize();
 	testRayDestination = rayOrigin + dir * hit.distance;
-	Vec3Df color = performRayTracing(rayOrigin, rayDestination, depth, depthrefr, formerNi);
+	Vec3Df color = performRayTracing(rayOrigin, rayDestination, depth, depthrefr);
 	//std::cout << material.illum() << std::endl;
 	//std::cout << material.Ns() << std::endl;
 	//std::cout << hit.distance << std::endl;
