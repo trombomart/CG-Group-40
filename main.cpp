@@ -223,7 +223,9 @@ void threadRayTrace(int i){
 
 			//launch raytracing for the given ray.
 			int depth = 0;
-			Vec3Df rgb = performRayTracing(origin, dest, depth);
+			int depthrefr = 0;
+			float formerNi = 1.0;
+			Vec3Df rgb = performRayTracing(origin, dest, depth, depthrefr, formerNi);
 			//store the result in an image 
 			buffer[y][x] = rgb;
 			calculatedPixels++;

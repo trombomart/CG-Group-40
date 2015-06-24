@@ -1,19 +1,22 @@
-﻿Build started 17-6-2015 17:49:40.
-     1>Project "C:\Users\Martin\CG-Group-40\Project\TP2.vcxproj" on node 2 (Build target(s)).
+﻿Build started 23-6-2015 20:38:41.
+     1>Project "C:\Users\Denver\Documents\CG-Group-40\Project\TP2.vcxproj" on node 2 (Build target(s)).
      1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\Martin\CG-Group-40\Project\include\\" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt ..\raytracing.cpp
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /I"C:\Users\Denver\Documents\CG-Group-40\Project\include\\" /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt ..\raytracing.cpp
          raytracing.cpp
-     1>c:\users\martin\cg-group-40\raytracing.cpp(110): warning C4554: '&' : check operator precedence for possible error; use parentheses to clarify precedence
-     1>c:\users\martin\cg-group-40\raytracing.cpp(151): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
-     1>c:\users\martin\cg-group-40\raytracing.cpp(189): warning C4018: '<' : signed/unsigned mismatch
-     1>c:\users\martin\cg-group-40\raytracing.cpp(262): warning C4554: '&' : check operator precedence for possible error; use parentheses to clarify precedence
+     1>c:\users\denver\documents\cg-group-40\raytracing.cpp(46): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\denver\documents\cg-group-40\raytracing.cpp(245): warning C4244: '=' : conversion from 'double' to 'float', possible loss of data
+     1>c:\users\denver\documents\cg-group-40\raytracing.cpp(310): warning C4305: 'argument' : truncation from 'double' to 'float'
+     1>c:\users\denver\documents\cg-group-40\raytracing.cpp(342): warning C4554: '&' : check operator precedence for possible error; use parentheses to clarify precedence
+     1>c:\users\denver\documents\cg-group-40\raytracing.cpp(351): warning C4554: '&' : check operator precedence for possible error; use parentheses to clarify precedence
+     1>c:\users\denver\documents\cg-group-40\raytracing.cpp(382): warning C4018: '<' : signed/unsigned mismatch
+     1>c:\users\denver\documents\cg-group-40\raytracing.cpp(384): warning C4018: '<' : signed/unsigned mismatch
        Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Martin\CG-Group-40\Project\Debug\TP2.exe" /INCREMENTAL /NOLOGO freeglut.lib glew32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Martin\CG-Group-40\Project\Debug\TP2.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Martin\CG-Group-40\Project\Debug\TP2.lib" /MACHINE:X86 Debug\main.obj
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Users\Denver\Documents\CG-Group-40\Project\Debug\TP2.exe" /INCREMENTAL /NOLOGO freeglut.lib glew32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Users\Denver\Documents\CG-Group-40\Project\Debug\TP2.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Users\Denver\Documents\CG-Group-40\Project\Debug\TP2.lib" /MACHINE:X86 Debug\main.obj
          Debug\mesh.obj
          Debug\raytracing.obj
-         TP2.vcxproj -> C:\Users\Martin\CG-Group-40\Project\Debug\TP2.exe
-     1>Done Building Project "C:\Users\Martin\CG-Group-40\Project\TP2.vcxproj" (Build target(s)).
+         TP2.vcxproj -> C:\Users\Denver\Documents\CG-Group-40\Project\Debug\TP2.exe
+     1>Done Building Project "C:\Users\Denver\Documents\CG-Group-40\Project\TP2.vcxproj" (Build target(s)).
 
 Build succeeded.
 
-Time Elapsed 00:00:01.43
+Time Elapsed 00:00:03.28
