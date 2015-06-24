@@ -597,6 +597,7 @@ void yourKeyboardFunc(char key, int x, int y, const Vec3Df & rayOrigin, const Ve
 	float red;
 	float green;
 	float blue;
+	int index;
 	switch (key)
 	{
 	case 'o':
@@ -655,6 +656,21 @@ void yourKeyboardFunc(char key, int x, int y, const Vec3Df & rayOrigin, const Ve
 		else{
 			Lights.push_back(Light(rayOrigin, Vec3Df(red, green, blue)));
 		}
+		break;
+
+	case 12:
+		std::cout << "Number of Lights: " << Lights.size << std::endl;
+		std::cout << "Delete index: ";
+
+		std::cin >> index;
+
+		if ( index < Lights.size() && index != 0){
+			//Lights.;
+		}
+		else{
+			//Lights.push_back(Light(rayOrigin, Vec3Df(red, green, blue)));
+		}
+		break;
 		break;
 	}
 }
