@@ -223,7 +223,6 @@ void threadRayTrace(int i){
 
 
 			//launch raytracing for the given ray.
-			int depth = 0;
 			int depthrefr = 0;
 			Vec3Df rgb = performRayTracing(origin, dest, depth, depthrefr);
 			//store the result in an image 

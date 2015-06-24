@@ -47,8 +47,8 @@ void init()
 	//otherwise the application will not load properly
 	//MyMesh.loadMesh("../dodgeColorTest.obj", true);
 	//MyMesh.loadMesh("../showcase.obj", true);
-	MyMesh.loadMesh("../objects/Mountain.obj", true);
-	//MyMesh.loadMesh("../reflect_floor.obj", true);
+	//MyMesh.loadMesh("../objects/Mountain.obj", true);
+	MyMesh.loadMesh("../objects/reflect_floor.obj", true);
 
 	MyMesh.computeVertexNormals();
 
@@ -74,7 +74,7 @@ void init()
 	Spheres.push_back(Sphere(Vec3Df(0.75, 0.5, 1.5), 0.5));
 	Material SphereMat2 = Material();
 	SphereMat2.set_Kd(0.2, 0.7, 0.2);
-	SphereMat.set_Ks(0.75, 0.75, 0.75);
+	SphereMat2.set_Ks(0.75, 0.75, 0.75);
 	SphereMat2.set_illum(3);
 	SphereMat2.set_Ns(750);
 	sphereMaterials.push_back(SphereMat2);
@@ -397,7 +397,7 @@ std::vector<SoftLight> SoftLights;
 
 
 //return the color of your pixel.
-Vec3Df performRayTracing(const Vec3Df & origin, const Vec3Df & dest, int & depth, int & depthrefr)
+Vec3Df performRayTracing(const Vec3Df origin, const Vec3Df dest, int depth, int depthrefr)
 {
 	bool invert = false;
 	if (depthrefr % 2 == 1) invert = true;
@@ -616,7 +616,7 @@ void yourKeyboardFunc(char key, int x, int y, const Vec3Df & rayOrigin, const Ve
 	testRayOrigin = rayOrigin;
 	hitResult hit = closestHit(rayOrigin, rayDestination);
 	Vec3Df dir = rayDestination - rayOrigin;
-	int depth = 0;
+	int depth = 2;
 	int depthrefr = 0;
 	dir.normalize();
 	testRayDestination = rayOrigin + dir * hit.distance;
